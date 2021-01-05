@@ -41,3 +41,15 @@ TagManager:
   - name: Default
     uniqueID: 0
     locked: 0
+  - name: Background
+    uniqueID: 195560033
+    locked: 0
+  - name: Board
+    uniqueID: 2653878195
+    locked: 0
+  - name: Pieces
+    uniqueID: 3895061979
+    locked: 0
+  - name: PieceOverlays
+    uniqueID: 3737412227
+    locked: 0

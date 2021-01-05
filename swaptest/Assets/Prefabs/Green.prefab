@@ -67,11 +67,21 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 6401508220519727145, guid: 1cab4c10b617b7a42992206929241914,
+        type: 3}
+      propertyPath: m_RootOrder
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 6827907440890555389, guid: 1cab4c10b617b7a42992206929241914,
         type: 3}
       propertyPath: _colour
       value: 3
       objectReference: {fileID: 0}
+    - target: {fileID: 6827907440890555389, guid: 1cab4c10b617b7a42992206929241914,
+        type: 3}
+      propertyPath: _animator
+      value: 
+      objectReference: {fileID: 7717549767427375599}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 1cab4c10b617b7a42992206929241914, type: 3}
 --- !u!4 &7763040649083923593 stripped
@@ -135,5 +145,47 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 9581780, guid: 28dd42fca7a476d478e583d0b8d8e192, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 21220900, guid: 28dd42fca7a476d478e583d0b8d8e192, type: 3}
+      propertyPath: m_SortingLayer
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 21220900, guid: 28dd42fca7a476d478e583d0b8d8e192, type: 3}
+      propertyPath: m_SortingLayerID
+      value: -399905317
+      objectReference: {fileID: 0}
+    - target: {fileID: 21220902, guid: 28dd42fca7a476d478e583d0b8d8e192, type: 3}
+      propertyPath: m_SortingLayer
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 21220902, guid: 28dd42fca7a476d478e583d0b8d8e192, type: 3}
+      propertyPath: m_SortingLayerID
+      value: -399905317
+      objectReference: {fileID: 0}
+    - target: {fileID: 21220904, guid: 28dd42fca7a476d478e583d0b8d8e192, type: 3}
+      propertyPath: m_SortingLayer
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 21220904, guid: 28dd42fca7a476d478e583d0b8d8e192, type: 3}
+      propertyPath: m_SortingLayerID
+      value: -399905317
+      objectReference: {fileID: 0}
+    - target: {fileID: 21220906, guid: 28dd42fca7a476d478e583d0b8d8e192, type: 3}
+      propertyPath: m_SortingLayer
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 21220906, guid: 28dd42fca7a476d478e583d0b8d8e192, type: 3}
+      propertyPath: m_SortingLayerID
+      value: -399905317
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 28dd42fca7a476d478e583d0b8d8e192, type: 3}
+--- !u!95 &7717549767427375599 stripped
+Animator:
+  m_CorrespondingSourceObject: {fileID: 9581780, guid: 28dd42fca7a476d478e583d0b8d8e192,
+    type: 3}
+  m_PrefabInstance: {fileID: 7717549767420179771}
+  m_PrefabAsset: {fileID: 0}

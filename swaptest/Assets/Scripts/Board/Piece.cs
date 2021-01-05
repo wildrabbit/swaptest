@@ -15,8 +15,7 @@ namespace Board
         Yellow,
         Blue,
         Green,
-        Orange,
-        NumColours
+        Orange
     }
 
     public class Piece
@@ -27,6 +26,12 @@ namespace Board
         public Piece(PieceType type, Colour colour)
         {
             PieceType = type;
+            Colour = colour;
+        }
+
+        public void Update(PieceType pieceType, Colour colour)
+        {
+            PieceType = pieceType;
             Colour = colour;
         }
     }
