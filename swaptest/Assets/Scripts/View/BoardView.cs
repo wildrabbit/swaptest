@@ -15,6 +15,7 @@ namespace View
 
         [SerializeField] float _swapDuration = 0.3f;
         [SerializeField] float _swapDelayDuration = 0.1f;
+        [SerializeField] float _explodeDelayDuration = 0.3f;
         [SerializeField] AnimationCurve _swapAnimationCurve;
 
         Rect _playableArea;
@@ -25,6 +26,7 @@ namespace View
         float _boardOffsetX;
         float _boardOffsetY;
         WaitForSeconds _swapDelay;
+        WaitForSeconds _explodeDelay;
 
         public event Action SwapAttemptStarted;
         public event Action<Vector2Int, Vector2Int> SwapAnimationCompleted;
@@ -35,6 +37,7 @@ namespace View
         void Awake()
         {
             _swapDelay = new WaitForSeconds(_swapDelayDuration);
+            _explodeDelay = new WaitForSeconds(_explodeDelayDuration);
         }
 
         public void LoadView(Piece[,] pieces)
@@ -71,6 +74,45 @@ namespace View
             _playableArea = new Rect(centerPos.x - 0.5f * totalWidth, centerPos.y - 0.5f * totalHeight, totalWidth, totalHeight);
         }
 
+        public IEnumerator ExplodePieces(IEnumerable<Vector2Int> matchingCoordinates)
+        {
+            var pieces = GetPieces(matchingCoordinates);
+            foreach(var piece in pieces)
+            {
+                StartCoroutine(piece.Explode());
+            }
+            yield return _explodeDelay;
+            foreach (var piece in pieces)
+            {
+                Destroy(piece.gameObject);
+                _pieceInstances.Remove(piece);
+            }
+        }
+
+        public List<PieceView> GetPieces(IEnumerable<Vector2Int> pieceCoords)
+        {
+            List<PieceView> pieces = new List<PieceView>();
+            foreach (var coords in pieceCoords)
+            {
+                TryGetPieceView(coords, out var pieceView);
+                if(pieceView != null)
+                {
+                    pieces.Add(pieceView);
+                }
+            }
+            return pieces;
+        }
+
+        public void PrepareBoardUpdate()
+        {
+            BoardUpdateStarted?.Invoke();
+        }
+
+        public void CompleteBoardUpdate()
+        {
+            BoardUpdateCompleted?.Invoke();
+        }
+
         public void AttemptSwap(PieceView selectedPiece, PieceView swapCandidatePiece)
         {
             Debug.Log($"Attempting swap between @ {selectedPiece.Coords} and {swapCandidatePiece.Coords} ");
@@ -100,7 +142,16 @@ namespace View
 
         public void ConfirmSwapAttempt(Vector2Int selected, Vector2Int candidate)
         {
-
+            TryGetPieceView(selected, out var selectedPiece);
+            TryGetPieceView(candidate, out var targetPiece);
+            if(selectedPiece != null)
+            {
+                selectedPiece.UpdateCoords(candidate);
+            }
+            if(targetPiece != null)
+            {
+                targetPiece.UpdateCoords(selected);
+            }
         }
 
         public void OnFailedSwapAttempt(Vector2Int selected, Vector2Int candidate)
@@ -120,8 +171,8 @@ namespace View
             while (duration < _swapDuration)
             {
                 t = _swapAnimationCurve.Evaluate(duration / _swapDuration);
-                candidatePiece.transform.localPosition = Vector3.Lerp(candidatePos, selectedPos, t);
-                selectedPiece.transform.localPosition = Vector3.Lerp(selectedPos, candidatePos, t);
+                selectedPiece.transform.localPosition = Vector3.Lerp(candidatePos, selectedPos, t);
+                candidatePiece.transform.localPosition = Vector3.Lerp(selectedPos, candidatePos, t);
                 yield return null;
                 duration += Time.deltaTime;
             }

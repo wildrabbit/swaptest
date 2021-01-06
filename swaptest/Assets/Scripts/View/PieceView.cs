@@ -1,5 +1,7 @@
 ﻿using UnityEngine;
 using Board;
+using System;
+using System.Collections;
 
 namespace View
 {
@@ -19,6 +21,11 @@ namespace View
         void Awake()
         {
             _selectionOverlay.SetActive(false);
+        }
+
+        public void UpdateCoords(Vector2Int coords)
+        {
+            _coords = coords;
         }
 
         public void Init(Vector2Int coords, Vector3 position)
@@ -42,6 +49,14 @@ namespace View
         public void Deselect()
         {
             _selectionOverlay.SetActive(false);
+        }
+
+        public IEnumerator Explode()
+        {
+            // Play explode animation
+            // Disable view
+            // Play explode VFX
+            yield return null;
         }
     }
 }

@@ -10,6 +10,15 @@ namespace Board
 {
     public class BoardController : MonoBehaviour
     {
+
+        enum BoardUpdatePhase
+        {
+            Stable,
+            Matching,
+            Exploding,
+            Gravity
+        }
+
         [SerializeField] int _cols;
         [SerializeField] int _rows;
         [SerializeField] bool _isSeeded;
@@ -25,12 +34,14 @@ namespace Board
         bool[,] _boardLayout;
         Piece[,] _pieces;
         string _lastSeed;
+        BoardUpdatePhase _currentPhase;
 
         void Awake()
         {
             InitBoard();
             InitPieces();
             LoadView();
+            _currentPhase = BoardUpdatePhase.Stable;
         }
 
         void OnDestroy()
@@ -58,9 +69,48 @@ namespace Board
             }
         }
 
-        private void BeginBoardUpdatePhase()
+        void BeginBoardUpdatePhase()
         {
-            throw new NotImplementedException();
+            StartCoroutine(BoardUpdateRoutine());
+        }
+
+        IEnumerator BoardUpdateRoutine()
+        {
+            _currentPhase = BoardUpdatePhase.Matching;
+            _view.PrepareBoardUpdate();
+            var matches = MatchFinder.FindMatches(_pieces);
+            while(matches.Count > 0)
+            {
+                // TODO: Scoring, special generation, etc
+                yield return ClearPieces(GetExplodingPieces(matches));
+                matches = MatchFinder.FindMatches(_pieces);
+            }
+            yield return null;
+            _currentPhase = BoardUpdatePhase.Stable;
+            _view.CompleteBoardUpdate();
+        }
+
+        private IEnumerator ClearPieces(HashSet<Vector2Int> matchingCoordinates)
+        {
+            foreach(var coords in matchingCoordinates)
+            {
+                (int row, int col) = (coords.x, coords.y);
+                _pieces[row, col] = null;
+            }
+            return _view.ExplodePieces(matchingCoordinates);
+        }
+
+        private HashSet<Vector2Int> GetExplodingPieces(List<MatchInfo> matches)
+        {
+            var set = new HashSet<Vector2Int>();
+            foreach(var match in matches)
+            {
+                foreach(var pieceCoords in match.MatchCoords)
+                {
+                    set.Add(pieceCoords);
+                }
+            }
+            return set;
         }
 
         private void SwapPositions(Vector2Int selectedCoords, Vector2Int targetCoords)
@@ -76,11 +126,62 @@ namespace Board
 
         private bool CanMatch(Vector2Int selectedCoords, Vector2Int targetCoords)
         {
-            Piece[,] pieceCopy = new Piece[_rows, _cols];
-            System.Array.Copy(_pieces, pieceCopy, _rows * _cols);
-            pieceCopy[selectedCoords.x, selectedCoords.y] = _pieces[targetCoords.x, targetCoords.y];
-            pieceCopy[targetCoords.x, targetCoords.y] = _pieces[selectedCoords.x, selectedCoords.y];
-            // TODO: Find match
+            Piece selectedPiece = _pieces[selectedCoords.x, selectedCoords.y];
+            Piece targetPiece = _pieces[targetCoords.x, targetCoords.y];
+            Vector2Int excludeOffsetA = selectedCoords - targetCoords;
+            Vector2Int excludeOffsetB = -excludeOffsetA;
+            return FindMatch(selectedPiece.PieceType, selectedPiece.Colour, targetCoords, excludeOffsetA)
+                || FindMatch(targetPiece.PieceType, targetPiece.Colour, selectedCoords, excludeOffsetB);
+        }
+
+        bool FindMatch(PieceType type, Colour colour, Vector2Int refCoords, Vector2Int excludedOffset)
+        {
+            (int, int)[] primaryNeighbourOffsets =
+            {
+                (0,1), (0,-1), (-1,0), (1,0)
+            };
+
+            (int, int)[][] secondaryOffsets =
+            {
+                new (int, int)[]{(0, 2), (0,-1)},
+                new (int, int)[]{(0,-2), (0,1)},
+                new (int, int)[]{(-2,0), (1,0)},
+                new (int, int)[]{(2,0), (-1,0)},
+            };
+
+            (int row, int col) = (refCoords.x, refCoords.y);
+            for(int i = 0; i < primaryNeighbourOffsets.Length; ++i)
+            {
+                (int rowOffset, int colOffset) = primaryNeighbourOffsets[i];
+
+                if (!AreValidCoords(row + rowOffset, col + colOffset) || (rowOffset == excludedOffset.x && colOffset == excludedOffset.y))
+                {
+                    continue;
+                }
+                Piece neighbour = _pieces[row + rowOffset, col + colOffset];
+                if(neighbour == null )
+                {
+                    continue;
+                }
+                if(neighbour.PieceType == type && neighbour.Colour == colour)
+                {
+                    // Evaluate secondary offsets
+                    (int, int)[] testSecOffsets = secondaryOffsets[i];
+                    for(int j = 0; j < testSecOffsets.Length; ++j)
+                    {
+                        (int secRowOffset, int secColOffset) = testSecOffsets[j];
+                        if (!AreValidCoords(row + secRowOffset, col + secColOffset) || (secRowOffset == excludedOffset.x && secColOffset == excludedOffset.y))
+                        {
+                            continue;
+                        }
+                        Piece secondaryNeighbour = _pieces[row + secRowOffset, col + secColOffset];
+                        if(secondaryNeighbour.PieceType == type && secondaryNeighbour.Colour == colour)
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
             return false;
         }
 
@@ -160,10 +261,14 @@ namespace Board
             throw new NotImplementedException();
         }
 
+        bool AreValidCoords(int row, int col)
+        {
+            return row >= 0 && row < _rows && col >= 0 && col < _cols;
+        }
 
         bool IsValidSlot(int row, int col)
         {
-            Debug.Assert(row >= 0 && row < _rows && col >= 0 && col < _cols, "Invalid coordinates");
+            Debug.Assert(AreValidCoords(row, col), "Invalid coordinates");
             return _boardLayout[row, col];
         }
 

@@ -104,11 +104,16 @@ namespace Board
                     List<int> candidateMatchIndices = new List<int>();
                     candidateMatchIndices.Add(j * rows + i);
                     Piece refPiece = pieces[j, i];
+                    if (refPiece == null)
+                    {
+                        j++;
+                        continue;
+                    }
                     int k = j + 1;
                     while (k < rows)
                     {
-                        Piece testPiece = pieces[j, k];
-                        if (testPiece.PieceType == refPiece.PieceType && testPiece.Colour == refPiece.Colour)
+                        Piece testPiece = pieces[k, i];
+                        if (testPiece != null && testPiece.PieceType == refPiece.PieceType && testPiece.Colour == refPiece.Colour)
                         {
                             candidateMatchIndices.Add(k * rows + i);
                             k++;
@@ -137,11 +142,16 @@ namespace Board
                     List<int> candidateMatchIndices = new List<int>();
                     candidateMatchIndices.Add(i * rows + j);
                     Piece refPiece = pieces[i, j];
+                    if(refPiece == null)
+                    {
+                        j++;
+                        continue;
+                    }
                     int k = j + 1;
                     while (k < cols)
                     {
                         Piece testPiece = pieces[i, k];
-                        if (testPiece.PieceType == refPiece.PieceType && testPiece.Colour == refPiece.Colour)
+                        if (testPiece != null && testPiece.PieceType == refPiece.PieceType && testPiece.Colour == refPiece.Colour)
                         {
                             candidateMatchIndices.Add(i * rows + k);
                             k++;
