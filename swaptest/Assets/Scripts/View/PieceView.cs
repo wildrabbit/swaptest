@@ -28,10 +28,11 @@ namespace View
             _coords = coords;
         }
 
-        public void Init(Vector2Int coords, Vector3 position)
+        public void Init(Vector2Int coords, Vector3 position, bool startEnabled = true)
         {
             _coords = coords;
             transform.localPosition = position;
+            gameObject.SetActive(startEnabled);
         }
 
         public bool IsAdjacentTo(PieceView selectedPiece)
@@ -57,6 +58,51 @@ namespace View
             // Disable view
             // Play explode VFX
             yield return null;
+        }
+
+        public IEnumerator Drop1()
+        {
+            yield return null;
+        }
+
+        public IEnumerator SpawnDrop1()
+        {
+            gameObject.SetActive(true);
+            yield return null;
+        }
+
+        public IEnumerator Drop(Vector2Int dropCoords, Vector3 newPos, float duration)
+        {
+            float time = 0;
+            Vector3 startPos = transform.localPosition;
+            while (time < duration)
+            {
+                transform.localPosition = Vector3.Lerp(startPos, newPos, time / duration);
+                yield return null;
+                time += Time.deltaTime;
+            }
+            _coords = dropCoords;
+        }
+
+        public IEnumerator Shuffle(Vector2Int newCoords, Vector3 newPos, float duration)
+        {
+            float time = 0.0f;
+            float halvedDuration = duration * 0.5f;
+            while (time < halvedDuration)
+            {
+                transform.localScale = Vector3.Lerp(Vector3.one, Vector3.zero, time / halvedDuration);
+                yield return null;
+                time += Time.deltaTime;
+            }
+            transform.localPosition = newPos;
+            time = 0.0f;
+            while (time < halvedDuration)
+            {
+                transform.localScale = Vector3.Lerp(Vector3.zero, Vector3.one, time / halvedDuration);
+                yield return null;
+                time += Time.deltaTime;
+            }
+            _coords = newCoords;
         }
     }
 }

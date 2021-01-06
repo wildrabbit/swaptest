@@ -207,6 +207,9 @@ MonoBehaviour:
   _piecesRoot: {fileID: 170012397}
   _swapDuration: 0.3
   _swapDelayDuration: 0.1
+  _explodeDelayDuration: 0.3
+  _dropDelayDuration: 0.2
+  _reshuffleDelayDuration: 0.4
   _swapAnimationCurve:
     serializedVersion: 2
     m_Curve:
@@ -290,9 +293,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bd1bffadee5f9da4b960301dde667635, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _maxReshuffles: 0
   _cols: 9
   _rows: 9
-  _isSeeded: 1
+  _isSeeded: 0
   _seedJson: '{"s0":1283814045,"s1":-539758341,"s2":-931109512,"s3":-335360486}'
   _view: {fileID: 222170557}
 --- !u!4 &458465272

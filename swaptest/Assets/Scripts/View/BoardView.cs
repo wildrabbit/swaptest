@@ -16,6 +16,8 @@ namespace View
         [SerializeField] float _swapDuration = 0.3f;
         [SerializeField] float _swapDelayDuration = 0.1f;
         [SerializeField] float _explodeDelayDuration = 0.3f;
+        [SerializeField] float _dropDelayDuration = 0.2f;
+        [SerializeField] float _reshuffleDelayDuration = 0.4f;
         [SerializeField] AnimationCurve _swapAnimationCurve;
 
         Rect _playableArea;
@@ -27,6 +29,8 @@ namespace View
         float _boardOffsetY;
         WaitForSeconds _swapDelay;
         WaitForSeconds _explodeDelay;
+        WaitForSeconds _dropDelay;
+        WaitForSeconds _reshuffleDelay;
 
         public event Action SwapAttemptStarted;
         public event Action<Vector2Int, Vector2Int> SwapAnimationCompleted;
@@ -38,6 +42,8 @@ namespace View
         {
             _swapDelay = new WaitForSeconds(_swapDelayDuration);
             _explodeDelay = new WaitForSeconds(_explodeDelayDuration);
+            _dropDelay = new WaitForSeconds(_dropDelayDuration);
+            _reshuffleDelay = new WaitForSeconds(_reshuffleDelayDuration);
         }
 
         public void LoadView(Piece[,] pieces)
@@ -87,6 +93,64 @@ namespace View
                 Destroy(piece.gameObject);
                 _pieceInstances.Remove(piece);
             }
+        }
+
+        public IEnumerator Drop(HashSet<Vector2Int> droppingPieces)
+        {
+            var pieces = GetPieces(droppingPieces);
+            foreach(var piece in pieces)
+            {
+                Vector2Int dropCoords = piece.Coords;
+                dropCoords.x = dropCoords.x - 1;
+                TryConvertCoordsToBoardPos(dropCoords, out var pos);
+                StartCoroutine(piece.Drop(dropCoords, pos, _dropDelayDuration));
+            }          
+            yield return _dropDelay;
+        }
+
+        public IEnumerator Reshuffle(List<(Vector2Int, Vector2Int)> swaps)
+        {
+            var pieces = GetPieces(swaps.ConvertAll(tuple => tuple.Item1));
+            for(int i = 0; i < swaps.Count; ++i)
+            {
+                TryConvertCoordsToBoardPos(swaps[i].Item2, out var pos);
+                StartCoroutine(pieces[i].Shuffle(swaps[i].Item2, pos, _reshuffleDelayDuration));
+            }
+            yield return _reshuffleDelay;
+        }
+
+        public IEnumerator Refill(List<(Piece, Vector2Int)> newPieces)
+        {
+            var generatedPieces = GeneratePieceList(newPieces);
+            foreach (var piece in generatedPieces)
+            {
+                StartCoroutine(piece.SpawnDrop1());
+            }
+            yield return null;
+        }
+
+        private List<PieceView> GeneratePieceList(List<(Piece, Vector2Int)> newPieces)
+        {
+            var generatedPieces = new List<PieceView>();
+            foreach(var generationData in newPieces)
+            {
+                (Piece pieceData, (int row, int col)) = (generationData.Item1, (generationData.Item2.x, generationData.Item2.y));
+
+                PieceView instance = Instantiate(GetPrefabForPiece(pieceData), _piecesRoot);
+                if (instance != null)
+                {
+                    Vector3 position = new Vector3
+                    {
+                        x = col * _cellWidth - _boardOffsetX,
+                        y = row * _cellHeight - _boardOffsetY,
+                        z = 0.0f
+                    };
+                    instance.Init(generationData.Item2, position, startEnabled:false);
+                    _pieceInstances.Add(instance);
+                    generatedPieces.Add(instance);
+                }
+            }
+            return generatedPieces;
         }
 
         public List<PieceView> GetPieces(IEnumerable<Vector2Int> pieceCoords)

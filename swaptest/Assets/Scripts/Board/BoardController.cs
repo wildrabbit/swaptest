@@ -19,6 +19,7 @@ namespace Board
             Gravity
         }
 
+        [SerializeField] int _maxReshuffles;
         [SerializeField] int _cols;
         [SerializeField] int _rows;
         [SerializeField] bool _isSeeded;
@@ -31,10 +32,11 @@ namespace Board
         public int Rows => _rows;
         public BoardView View => _view;
 
-        bool[,] _boardLayout;
+        //bool[,] _boardLayout;
         Piece[,] _pieces;
         string _lastSeed;
         BoardUpdatePhase _currentPhase;
+        private int kMaxReshuffles;
 
         void Awake()
         {
@@ -83,11 +85,83 @@ namespace Board
             {
                 // TODO: Scoring, special generation, etc
                 yield return ClearPieces(GetExplodingPieces(matches));
+                yield return ApplyGravityAndRegenerate();
                 matches = MatchFinder.FindMatches(_pieces);
+            }
+            int possibleMatches = CountCoordsWithMatches();
+            int reshuffleCount = 0;
+            while (possibleMatches == 0 && reshuffleCount < _maxReshuffles)
+            {
+                yield return Reshuffle();
+                reshuffleCount++;
             }
             yield return null;
             _currentPhase = BoardUpdatePhase.Stable;
+            
             _view.CompleteBoardUpdate();
+        }
+
+        private IEnumerator Reshuffle()
+        {
+            List<(Vector2Int, Vector2Int)> swaps = new List<(Vector2Int, Vector2Int)>();
+            int totalPieces = _pieces.Length;
+            for (int idx = 0; idx < totalPieces - 1; ++idx)
+            {
+                int swapIdx = URandom.Range(idx + 1, totalPieces);
+                int srcRow = idx / _rows;
+                int srcCol = idx % _rows;
+                int swapRow = swapIdx / _rows;
+                int swapCol = swapIdx / _cols;
+
+                PieceType auxType = _pieces[srcRow, srcCol].PieceType;
+                Colour auxColour = _pieces[srcRow, srcCol].Colour;
+                _pieces[srcRow, srcCol].Update(_pieces[swapRow, swapCol].PieceType, _pieces[swapRow, swapCol].Colour);
+                _pieces[swapRow, swapCol].Update(auxType, auxColour);
+                swaps.Add((new Vector2Int(srcRow, srcCol), new Vector2Int(swapRow, swapCol)));
+            }
+            yield return _view.Reshuffle(swaps);
+        }
+
+        private IEnumerator ApplyGravityAndRegenerate()
+        {
+            _currentPhase = BoardUpdatePhase.Gravity;
+            bool gapFound = false;
+            HashSet<Vector2Int> droppingPieces = new HashSet<Vector2Int>();
+            List<(Piece, Vector2Int)> newPieces = new List<(Piece, Vector2Int)>();
+            do
+            {
+                gapFound = false;
+                for (int row = 0; row < _rows; ++row)
+                {
+                    for (int col = 0; col < _cols; ++col)
+                    {
+                        Vector2Int coords = new Vector2Int(row, col);
+                        if(_pieces[row,col] == null)
+                        {
+                            gapFound = true;
+                        }
+                        else if (row > 0 && _pieces[row-1, col] == null)
+                        {
+                            droppingPieces.Add(coords);
+                            _pieces[row - 1, col] = _pieces[row, col];
+                            _pieces[row, col] = null;
+                        }
+                    }
+                }
+                yield return _view.Drop(droppingPieces);
+                droppingPieces.Clear();
+                for (int col = 0; col < _cols; ++col)
+                {
+                    Vector2Int coords = new Vector2Int(_rows - 1, col);
+                    if (_pieces[coords.x,coords.y] == null)
+                    {
+                        GeneratePieceAt(coords.x,coords.y, new Piece[] { }, new Piece[] { });
+                        newPieces.Add((_pieces[coords.x, coords.y], coords));
+                    }
+                }
+                yield return _view.Refill(newPieces);
+                newPieces.Clear();
+            } while (gapFound);
         }
 
         private IEnumerator ClearPieces(HashSet<Vector2Int> matchingCoordinates)
@@ -97,7 +171,7 @@ namespace Board
                 (int row, int col) = (coords.x, coords.y);
                 _pieces[row, col] = null;
             }
-            return _view.ExplodePieces(matchingCoordinates);
+            yield return _view.ExplodePieces(matchingCoordinates);
         }
 
         private HashSet<Vector2Int> GetExplodingPieces(List<MatchInfo> matches)
@@ -134,6 +208,52 @@ namespace Board
                 || FindMatch(targetPiece.PieceType, targetPiece.Colour, selectedCoords, excludeOffsetB);
         }
 
+        int CountCoordsWithMatches()
+        {
+            List<Vector2Int> targets = new List<Vector2Int>();
+            for(int row = 0; row < _rows; ++row)
+            {
+                for (int col = 0; col < _cols; ++col)
+                {
+                    Vector2Int testCoords = new Vector2Int(row, col);
+                    if (FindPotentialMatch(testCoords))
+                    {
+                        targets.Add(testCoords);
+                    }
+                }
+            }
+            return targets.Count;
+        }
+
+        bool FindPotentialMatch(Vector2Int refCoords)
+        {
+            if(!AreValidCoords(refCoords.x, refCoords.y) || _pieces[refCoords.x, refCoords.y] == null)
+            {
+                return false;
+            }
+
+            (int, int)[] primaryNeighbourOffsets =
+            {
+                (0,2), (0,-2), (-2,0), (2,0), (-1,-1), (-1,1), (1,-1), (1,1)
+            };
+
+            (int, int)[][] secondaryOffsets =
+            {
+                new (int, int)[]{(0,3)},
+                new (int, int)[]{(0,-3)},
+                new (int, int)[]{(-3,0)},
+                new (int, int)[]{(3,0)},
+                new (int, int)[]{(-1,-2), (1,-1), (-1,1), (-2,-1)},
+                new (int, int)[]{(-1,2), (1,1), (-1,-1), (-2,1)},
+                new (int, int)[]{(1,-2), (1,1), (-1,-1), (2,-1)},
+                new (int, int)[]{(1,2), (1,-1), (-1,1), (2,1)},
+            };
+
+            PieceType type = _pieces[refCoords.x, refCoords.y].PieceType;
+            Colour colour = _pieces[refCoords.x, refCoords.y].Colour;
+            return FindMatch(type, colour, refCoords, primaryNeighbourOffsets, secondaryOffsets, false, Vector2Int.zero);
+        }
+
         bool FindMatch(PieceType type, Colour colour, Vector2Int refCoords, Vector2Int excludedOffset)
         {
             (int, int)[] primaryNeighbourOffsets =
@@ -149,33 +269,38 @@ namespace Board
                 new (int, int)[]{(2,0), (-1,0)},
             };
 
+            return FindMatch(type, colour, refCoords, primaryNeighbourOffsets, secondaryOffsets, true, excludedOffset);
+        }
+
+        bool FindMatch(PieceType type, Colour colour, Vector2Int refCoords, (int, int)[] primaryNeighbourOffsets, (int, int)[][] secondaryOffsets, bool useExcludedOffset, Vector2Int excludedOffset)
+        {
             (int row, int col) = (refCoords.x, refCoords.y);
-            for(int i = 0; i < primaryNeighbourOffsets.Length; ++i)
+            for (int i = 0; i < primaryNeighbourOffsets.Length; ++i)
             {
                 (int rowOffset, int colOffset) = primaryNeighbourOffsets[i];
 
-                if (!AreValidCoords(row + rowOffset, col + colOffset) || (rowOffset == excludedOffset.x && colOffset == excludedOffset.y))
+                if (!AreValidCoords(row + rowOffset, col + colOffset) || (useExcludedOffset && rowOffset == excludedOffset.x && colOffset == excludedOffset.y))
                 {
                     continue;
                 }
                 Piece neighbour = _pieces[row + rowOffset, col + colOffset];
-                if(neighbour == null )
+                if (neighbour == null)
                 {
                     continue;
                 }
-                if(neighbour.PieceType == type && neighbour.Colour == colour)
+                if (neighbour.PieceType == type && neighbour.Colour == colour)
                 {
                     // Evaluate secondary offsets
                     (int, int)[] testSecOffsets = secondaryOffsets[i];
-                    for(int j = 0; j < testSecOffsets.Length; ++j)
+                    for (int j = 0; j < testSecOffsets.Length; ++j)
                     {
                         (int secRowOffset, int secColOffset) = testSecOffsets[j];
-                        if (!AreValidCoords(row + secRowOffset, col + secColOffset) || (secRowOffset == excludedOffset.x && secColOffset == excludedOffset.y))
+                        if (!AreValidCoords(row + secRowOffset, col + secColOffset) || (useExcludedOffset && secRowOffset == excludedOffset.x && secColOffset == excludedOffset.y))
                         {
                             continue;
                         }
                         Piece secondaryNeighbour = _pieces[row + secRowOffset, col + secColOffset];
-                        if(secondaryNeighbour.PieceType == type && secondaryNeighbour.Colour == colour)
+                        if (secondaryNeighbour.PieceType == type && secondaryNeighbour.Colour == colour)
                         {
                             return true;
                         }
@@ -187,8 +312,8 @@ namespace Board
 
         void InitBoard()
         {
-            _boardLayout = new bool[_rows, _cols];
-            _boardLayout.Fill(true);
+            //_boardLayout = new bool[_rows, _cols];
+            //_boardLayout.Fill(true);
         }
 
         void InitPieces()
@@ -210,32 +335,37 @@ namespace Board
             {
                 for(int j = 0; j < _cols; ++j)
                 {
-                    if(_boardLayout[i, j])
+                    //if(_boardLayout[i, j])
                     {
-                        Piece[] horz = {};
-                        Piece[] vert = {};
+                        Piece[] horz = { };
+                        Piece[] vert = { };
                         if (j >= 2)
                         {
                             horz = new Piece[]
                             {
-                                _pieces[i, j - 1], _pieces[i, j - 2]
+                    _pieces[i, j - 1], _pieces[i, j - 2]
                             };
                         }
-                        if(i >= 2)
+                        if (i >= 2)
                         {
                             vert = new Piece[]
                             {
-                                _pieces[i - 1, j], _pieces[i - 2, j]
+                     _pieces[i - 1, j], _pieces[i - 2, j]
                             };
                         }
-                        _pieces[i, j] = GeneratePiece(horz, vert);
+                        GeneratePieceAt(i, j, horz, vert);
                     }
-                    else
-                    {
-                        _pieces[i, j] = null;
-                    }
+                    //else
+                    //{
+                    //    _pieces[i, j] = null;
+                    //}
                 }
             }
+        }
+
+        void GeneratePieceAt(int i, int j, Piece[] horz, Piece[] vert)
+        {
+            _pieces[i, j] = GeneratePiece(horz, vert);
         }
 
         Piece GeneratePiece(Piece[] previousHorz, Piece[] previousVert)
@@ -265,12 +395,5 @@ namespace Board
         {
             return row >= 0 && row < _rows && col >= 0 && col < _cols;
         }
-
-        bool IsValidSlot(int row, int col)
-        {
-            Debug.Assert(AreValidCoords(row, col), "Invalid coordinates");
-            return _boardLayout[row, col];
-        }
-
     }
 }
