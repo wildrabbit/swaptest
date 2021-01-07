@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using Board;
+using Game.Board;
 using UnityEngine;
 
-namespace View
+namespace Game.View
 {
     public class BoardView: MonoBehaviour
     {
@@ -108,14 +108,9 @@ namespace View
             yield return _dropDelay;
         }
 
-        public IEnumerator Reshuffle(List<(Vector2Int, Vector2Int)> swaps)
+        public IEnumerator Reshuffle(Piece[,] swaps)
         {
-            var pieces = GetPieces(swaps.ConvertAll(tuple => tuple.Item1));
-            for(int i = 0; i < swaps.Count; ++i)
-            {
-                TryConvertCoordsToBoardPos(swaps[i].Item2, out var pos);
-                StartCoroutine(pieces[i].Shuffle(swaps[i].Item2, pos, _reshuffleDelayDuration));
-            }
+            LoadView(swaps);
             yield return _reshuffleDelay;
         }
 
@@ -300,7 +295,7 @@ namespace View
         {
             foreach(var piece in _pieceInstances)
             {
-                Destroy(piece);
+                Destroy(piece.gameObject);
             }
             _pieceInstances.Clear();
         }

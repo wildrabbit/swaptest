@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Utils;
 
-namespace Board
+namespace Game.Board
 {
     public enum MatchType
     {

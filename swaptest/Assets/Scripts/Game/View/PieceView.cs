@@ -1,9 +1,9 @@
 ﻿using UnityEngine;
-using Board;
+using Game.Board;
 using System;
 using System.Collections;
 
-namespace View
+namespace Game.View
 {
     public class PieceView : MonoBehaviour
     {

@@ -1,47 +1,43 @@
-﻿using System;
+﻿using Game.Levels;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Utils;
-using View;
+using Game.View;
 using URandom = UnityEngine.Random;
 
-namespace Board
+namespace Game.Board
 {
     public class BoardController : MonoBehaviour
     {
-
         enum BoardUpdatePhase
         {
             Stable,
             Matching,
             Exploding,
-            Gravity
+            Gravity,
+            Reshuffling
         }
 
         [SerializeField] int _maxReshuffles;
-        [SerializeField] int _cols;
-        [SerializeField] int _rows;
-        [SerializeField] bool _isSeeded;
-        [SerializeField] string _seedJson;
-
         [SerializeField] BoardView _view;
 
-        
-        public int Cols => _cols;
-        public int Rows => _rows;
-        public BoardView View => _view;
-
-        //bool[,] _boardLayout;
+        int _cols;
+        int _rows;
         Piece[,] _pieces;
         string _lastSeed;
         BoardUpdatePhase _currentPhase;
         private int kMaxReshuffles;
 
-        void Awake()
+        public int Cols => _cols;
+        public int Rows => _rows;
+        public BoardView View => _view;
+        public bool IsStable => _currentPhase == BoardUpdatePhase.Stable;
+
+
+        public void Init(BaseLevelData level)
         {
-            InitBoard();
-            InitPieces();
+            InitPieces(level);
             LoadView();
             _currentPhase = BoardUpdatePhase.Stable;
         }
@@ -51,7 +47,7 @@ namespace Board
             _view.SwapAnimationCompleted -= OnSwapAnimationCompleted;
         }
 
-        private void LoadView()
+        void LoadView()
         {
             _view.SwapAnimationCompleted -= OnSwapAnimationCompleted;
             _view.LoadView(_pieces);
@@ -71,7 +67,7 @@ namespace Board
             }
         }
 
-        void BeginBoardUpdatePhase()
+        public void BeginBoardUpdatePhase()
         {
             StartCoroutine(BoardUpdateRoutine());
         }
@@ -81,7 +77,7 @@ namespace Board
             _currentPhase = BoardUpdatePhase.Matching;
             _view.PrepareBoardUpdate();
             var matches = MatchFinder.FindMatches(_pieces);
-            while(matches.Count > 0)
+            while (matches.Count > 0)
             {
                 // TODO: Scoring, special generation, etc
                 yield return ClearPieces(GetExplodingPieces(matches));
@@ -92,7 +88,9 @@ namespace Board
             int reshuffleCount = 0;
             while (possibleMatches == 0 && reshuffleCount < _maxReshuffles)
             {
+                _currentPhase = BoardUpdatePhase.Reshuffling;
                 yield return Reshuffle();
+                possibleMatches = CountCoordsWithMatches();
                 reshuffleCount++;
             }
             yield return null;
@@ -103,23 +101,33 @@ namespace Board
 
         private IEnumerator Reshuffle()
         {
-            List<(Vector2Int, Vector2Int)> swaps = new List<(Vector2Int, Vector2Int)>();
+            Dictionary<Vector2Int, Vector2Int> swaps = new Dictionary<Vector2Int, Vector2Int>();
             int totalPieces = _pieces.Length;
-            for (int idx = 0; idx < totalPieces - 1; ++idx)
+            for(int i = 0; i < totalPieces; ++i)
             {
-                int swapIdx = URandom.Range(idx + 1, totalPieces);
+                Vector2Int startCoords = new Vector2Int(i / _rows, i % _rows);
+                swaps.Add(startCoords, startCoords);
+            }
+            for (int idx = totalPieces - 1; idx >= 0; idx--)
+            {
+                int swapIdx = URandom.Range(0, idx + 1);
                 int srcRow = idx / _rows;
                 int srcCol = idx % _rows;
                 int swapRow = swapIdx / _rows;
-                int swapCol = swapIdx / _cols;
+                int swapCol = swapIdx % _rows;
 
-                PieceType auxType = _pieces[srcRow, srcCol].PieceType;
-                Colour auxColour = _pieces[srcRow, srcCol].Colour;
-                _pieces[srcRow, srcCol].Update(_pieces[swapRow, swapCol].PieceType, _pieces[swapRow, swapCol].Colour);
-                _pieces[swapRow, swapCol].Update(auxType, auxColour);
-                swaps.Add((new Vector2Int(srcRow, srcCol), new Vector2Int(swapRow, swapCol)));
-            }
-            yield return _view.Reshuffle(swaps);
+                Piece srcPiece = _pieces[srcRow, srcCol];
+                Piece swapPiece = _pieces[swapRow, swapCol];
+                PieceType auxType = srcPiece.PieceType;
+                Colour auxColour = srcPiece.Colour;
+                srcPiece.UpdateData(swapPiece.PieceType, swapPiece.Colour);
+                var srcCoords = new Vector2Int(srcRow, srcCol);
+                var swapCoords = new Vector2Int(swapRow, swapCol);
+                swaps[srcCoords] = swapCoords;
+                swaps[swapCoords] = srcCoords;
+                swapPiece.UpdateData(auxType, auxColour);              
+            }         
+            yield return _view.Reshuffle(_pieces);
         }
 
         private IEnumerator ApplyGravityAndRegenerate()
@@ -152,11 +160,10 @@ namespace Board
                 droppingPieces.Clear();
                 for (int col = 0; col < _cols; ++col)
                 {
-                    Vector2Int coords = new Vector2Int(_rows - 1, col);
-                    if (_pieces[coords.x,coords.y] == null)
+                    if (_pieces[_rows - 1, col] == null)
                     {
-                        GeneratePieceAt(coords.x,coords.y, new Piece[] { }, new Piece[] { });
-                        newPieces.Add((_pieces[coords.x, coords.y], coords));
+                        _pieces[_rows - 1, col] = Piece.GenerateRandom();
+                        newPieces.Add((_pieces[_rows - 1, col], new Vector2Int(_rows - 1, col)));
                     }
                 }
                 yield return _view.Refill(newPieces);
@@ -166,6 +173,7 @@ namespace Board
 
         private IEnumerator ClearPieces(HashSet<Vector2Int> matchingCoordinates)
         {
+            _currentPhase = BoardUpdatePhase.Exploding;
             foreach(var coords in matchingCoordinates)
             {
                 (int row, int col) = (coords.x, coords.y);
@@ -193,8 +201,8 @@ namespace Board
             Piece tgt = _pieces[targetCoords.x, targetCoords.y];
             PieceType auxType = src.PieceType;
             Colour auxColour = src.Colour;
-            src.Update(tgt.PieceType, tgt.Colour);
-            tgt.Update(auxType, auxColour);
+            src.UpdateData(tgt.PieceType, tgt.Colour);
+            tgt.UpdateData(auxType, auxColour);
             _view.ConfirmSwapAttempt(selectedCoords, targetCoords);
         }
 
@@ -310,80 +318,11 @@ namespace Board
             return false;
         }
 
-        void InitBoard()
+        void InitPieces(BaseLevelData levelData)
         {
-            //_boardLayout = new bool[_rows, _cols];
-            //_boardLayout.Fill(true);
-        }
-
-        void InitPieces()
-        {
-            _pieces = new Piece[_rows, _cols];
-
-            if (_isSeeded)
-            {
-                URandom.state = JsonUtility.FromJson<URandom.State>(_seedJson);
-                _lastSeed = _seedJson;
-            }
-            else
-            {
-                _lastSeed = JsonUtility.ToJson(URandom.state);
-                Debug.Log($"Current state: {_lastSeed}");
-            }
-
-            for (int i = 0; i < _rows; ++i)
-            {
-                for(int j = 0; j < _cols; ++j)
-                {
-                    //if(_boardLayout[i, j])
-                    {
-                        Piece[] horz = { };
-                        Piece[] vert = { };
-                        if (j >= 2)
-                        {
-                            horz = new Piece[]
-                            {
-                    _pieces[i, j - 1], _pieces[i, j - 2]
-                            };
-                        }
-                        if (i >= 2)
-                        {
-                            vert = new Piece[]
-                            {
-                     _pieces[i - 1, j], _pieces[i - 2, j]
-                            };
-                        }
-                        GeneratePieceAt(i, j, horz, vert);
-                    }
-                    //else
-                    //{
-                    //    _pieces[i, j] = null;
-                    //}
-                }
-            }
-        }
-
-        void GeneratePieceAt(int i, int j, Piece[] horz, Piece[] vert)
-        {
-            _pieces[i, j] = GeneratePiece(horz, vert);
-        }
-
-        Piece GeneratePiece(Piece[] previousHorz, Piece[] previousVert)
-        {
-            // Ensure there will be no matches beforehand
-            List<Colour> validColours = new List<Colour>();
-            validColours.AddRange((Colour[])Enum.GetValues(typeof(Colour)));
-
-            if (previousHorz.Length == 2 && previousHorz[1].PieceType == previousHorz[0].PieceType && previousHorz[1].Colour == previousHorz[0].Colour)
-            {
-                validColours.Remove(previousHorz[0].Colour);
-            }
-            if (previousVert.Length == 2 && previousVert[1].PieceType == previousVert[0].PieceType && previousVert[1].Colour == previousVert[0].Colour)
-            {
-                validColours.Remove(previousVert[0].Colour);
-            }
-
-            return new Piece(PieceType.Normal, validColours[URandom.Range(0, validColours.Count)]);
+            _pieces = levelData.Generate();
+            _rows = _pieces.GetLength(0);
+            _cols = _pieces.GetLength(1);
         }
 
         private void ClearMatches(List<MatchInfo> matches)
