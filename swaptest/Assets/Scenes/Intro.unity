@@ -496,9 +496,8 @@ PrefabInstance:
     - target: {fileID: 5454507030962171987, guid: fb60766efea1e8440b894661543c40ba,
         type: 3}
       propertyPath: _gameScene
-      value: 
-      objectReference: {fileID: 102900000, guid: 30aa006de95d1204ca9c0868c200eb83,
-        type: 3}
+      value: Game
+      objectReference: {fileID: 0}
     - target: {fileID: 5454507031455486379, guid: fb60766efea1e8440b894661543c40ba,
         type: 3}
       propertyPath: m_SizeDelta.x

@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class IntroScreen : MonoBehaviour
 {
-    [SerializeField] Object _gameScene;
+    [SerializeField] string _gameScene;
     [SerializeField] GameObject _exitButton;
 
     // Start is called before the first frame update
@@ -17,7 +17,7 @@ public class IntroScreen : MonoBehaviour
 
     public void OnPlay()
     {
-        UnityEngine.SceneManagement.SceneManager.LoadScene(_gameScene.name);
+        UnityEngine.SceneManagement.SceneManager.LoadScene(_gameScene);
     }
 
     public void OnExit()

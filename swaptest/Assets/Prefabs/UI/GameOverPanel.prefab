@@ -868,4 +868,4 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _scoreMessage: {fileID: 5035504959504278199}
-  _menuScene: {fileID: 0}
+  _menuScene: 

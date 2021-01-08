@@ -1428,9 +1428,8 @@ PrefabInstance:
     - target: {fileID: 5035504959777282673, guid: a417ee28de4beb3439c747d733ad755b,
         type: 3}
       propertyPath: _menuScene
-      value: 
-      objectReference: {fileID: 102900000, guid: 26280e6f95b441645b89874d4f16e40e,
-        type: 3}
+      value: Intro
+      objectReference: {fileID: 0}
     - target: {fileID: 5035504959777282678, guid: a417ee28de4beb3439c747d733ad755b,
         type: 3}
       propertyPath: m_Pivot.x

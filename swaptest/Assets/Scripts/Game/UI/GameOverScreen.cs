@@ -9,7 +9,7 @@ namespace Game.UI
     {
         const string kGameOverTextPattern = "You scored {0} points.";
         [SerializeField] Text _scoreMessage;
-        [SerializeField] UnityEngine.Object _menuScene;
+        [SerializeField] string _menuScene;
 
         private void Awake()
         {
@@ -26,7 +26,7 @@ namespace Game.UI
 
         public void OnBackToMenu()
         {
-            UnityEngine.SceneManagement.SceneManager.LoadScene(_menuScene.name);
+            UnityEngine.SceneManagement.SceneManager.LoadScene(_menuScene);
         }
 
         public void Show(int finalScore)
