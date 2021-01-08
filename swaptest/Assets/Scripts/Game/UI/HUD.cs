@@ -2,6 +2,7 @@
 using System.Collections;
 using UnityEngine.UI;
 using System;
+using Game.Events;
 
 namespace Game.UI
 {
@@ -13,18 +14,18 @@ namespace Game.UI
         [SerializeField] Button _toggleSfx;
         [SerializeField] Button _toggleMusic;
 
-        private void Awake()
+        void Awake()
         {
-            var gameFlowEvents = GameController.GameEvents.Gameplay;
-            gameFlowEvents.GameStarted += OnGameStarted;
-            gameFlowEvents.GameFinished += OnGameFinished;
-            gameFlowEvents.ScoreChanged += OnScoreChanged;
-            gameFlowEvents.TimerChanged += OnTimerChanged;
+            var gameplayEvents = GameEvents.Instance.Gameplay;
+            gameplayEvents.GameStarted += OnGameStarted;
+            gameplayEvents.GameFinished += OnGameFinished;
+            gameplayEvents.ScoreChanged += OnScoreChanged;
+            gameplayEvents.TimerChanged += OnTimerChanged;
         }
 
-        private void OnDestroy()
+        void OnDestroy()
         {
-            var gameFlowEvents = GameController.GameEvents.Gameplay;
+            var gameFlowEvents = GameEvents.Instance.Gameplay;
             gameFlowEvents.GameStarted -= OnGameStarted;
             gameFlowEvents.GameFinished -= OnGameFinished;
             gameFlowEvents.ScoreChanged -= OnScoreChanged;

@@ -19,20 +19,70 @@ namespace Game.Input
 
         void Awake()
         {
-            UInput.simulateMouseWithTouches = true;            
+            UInput.simulateMouseWithTouches = true;
+            SubscribeToEvents();
         }
 
-        public void Init()
+        void OnDestroy()
         {
-            var gameplayEvents = GameController.GameEvents.Gameplay;
+            UnsubscribeFromEvents();
+        }
+
+        void Update()
+        {
+            if (!_enabled)
+            {
+                return;
+            }
+
+            if (UInput.touchCount == 0)
+            {
+                if (UInput.GetMouseButtonDown(kLeftMouseID))
+                {
+                    HandleTouch(kMouseTouchID, UInput.mousePosition, TouchPhase.Began);
+                }
+                if (UInput.GetMouseButton(kLeftMouseID))
+                {
+                    HandleTouch(kMouseTouchID, UInput.mousePosition, TouchPhase.Moved);
+                }
+                if (UInput.GetMouseButtonUp(kLeftMouseID))
+                {
+                    HandleTouch(kMouseTouchID, UInput.mousePosition, TouchPhase.Ended);
+                }
+            }
+            else
+            {
+                var touch = UInput.GetTouch(0);
+                HandleTouch(0, touch.position, touch.phase);
+            }
+        }
+
+
+
+        void SubscribeToEvents()
+        {
+            var gameplayEvents = GameEvents.Instance.Gameplay;
             gameplayEvents.GameStarted += OnGameStarted;
             gameplayEvents.GameFinished += OnGameFinished;
 
-            var viewEvents = GameController.GameEvents.View;
+            var viewEvents = GameEvents.Instance.View;
             viewEvents.BoardUpdateCompleted += OnBoardUpdateCompleted;
             viewEvents.BoardUpdateStarted += OnBoardUpdateStarted;
             viewEvents.SwapAttemptStarted += OnSwapAttemptStarted;
-            viewEvents.FailedSwapAttempt += OnFailedSwapAttempt;            
+            viewEvents.FailedSwapAttempt += OnFailedSwapAttempt;
+        }
+
+        void UnsubscribeFromEvents()
+        {
+            var gameplayEvents = GameEvents.Instance.Gameplay;
+            gameplayEvents.GameStarted -= OnGameStarted;
+            gameplayEvents.GameFinished -= OnGameFinished;
+
+            var viewEvents = GameEvents.Instance.View;
+            viewEvents.BoardUpdateCompleted -= OnBoardUpdateCompleted;
+            viewEvents.BoardUpdateStarted -= OnBoardUpdateStarted;
+            viewEvents.SwapAttemptStarted -= OnSwapAttemptStarted;
+            viewEvents.FailedSwapAttempt -= OnFailedSwapAttempt;
         }
 
         void OnGameStarted(int score, float elapsedTime, float totalTime)
@@ -65,45 +115,6 @@ namespace Game.Input
         private void OnBoardUpdateStarted()
         {
             SetInputEnabled(false);
-        }
-
-        void OnDestroy()
-        {
-            var viewEvents = GameController.GameEvents.View;
-            viewEvents.BoardUpdateCompleted -= OnBoardUpdateCompleted;
-            viewEvents.BoardUpdateStarted -= OnBoardUpdateStarted;
-            viewEvents.SwapAttemptStarted -= OnSwapAttemptStarted;
-            viewEvents.FailedSwapAttempt -= OnFailedSwapAttempt;
-        }
-
-        // Update is called once per frame
-        void Update()
-        {
-            if (!_enabled)
-            {
-                return;
-            }
-
-            if (UInput.touchCount == 0)
-            {
-                if (UInput.GetMouseButtonDown(kLeftMouseID))
-                {
-                    HandleTouch(kMouseTouchID, UInput.mousePosition, TouchPhase.Began);
-                }
-                if (UInput.GetMouseButton(kLeftMouseID))
-                {
-                    HandleTouch(kMouseTouchID, UInput.mousePosition, TouchPhase.Moved);
-                }
-                if (UInput.GetMouseButtonUp(kLeftMouseID))
-                {
-                    HandleTouch(kMouseTouchID, UInput.mousePosition, TouchPhase.Ended);
-                }
-            }
-            else
-            {
-                var touch = UInput.GetTouch(0);
-                HandleTouch(0, touch.position, touch.phase);
-            }
         }
 
         void HandleTouch(int touchID, Vector2 screenPos, TouchPhase phase)

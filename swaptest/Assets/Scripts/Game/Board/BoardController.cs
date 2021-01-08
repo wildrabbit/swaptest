@@ -38,14 +38,20 @@ namespace Game.Board
         ViewEvents _viewEvents;
         BoardEvents _boardEvents;
 
-        void Start()
+        void Awake()
         {
-            _viewEvents = GameController.GameEvents.View;
+            _viewEvents = GameEvents.Instance.View;
             _viewEvents.SwapAnimationCompleted += OnSwapAnimationCompleted;
-            _boardEvents = GameController.GameEvents.Board;
+            _boardEvents = GameEvents.Instance.Board;
         }
 
-        public void Init(BaseLevelData level)
+        void OnDestroy()
+        {
+            _viewEvents = GameEvents.Instance.View;
+            _viewEvents.SwapAnimationCompleted -= OnSwapAnimationCompleted;
+        }
+
+        public void StartNewGame(BaseLevelData level)
         {
             InitPieces(level);
             LoadView();
@@ -101,13 +107,13 @@ namespace Game.Board
                     possibleMatches = CountCoordsWithMatches();
                     reshuffleCount++;
                 }
+                yield return null;
 
                 matches = MatchFinder.FindMatches(_pieces);
-                if(matches.Count == 0)
+                if (matches.Count == 0)
                 {
                     _currentPhase = BoardUpdatePhase.Stable;
                 }
-                yield return null;
             } while(_currentPhase != BoardUpdatePhase.Stable);            
             _view.CompleteBoardUpdate();
         }

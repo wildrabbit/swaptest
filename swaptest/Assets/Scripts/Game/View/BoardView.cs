@@ -42,7 +42,7 @@ namespace Game.View
             _dropDelay = new WaitForSeconds(_dropDelayDuration);
             _reshuffleDelay = new WaitForSeconds(_reshuffleDelayDuration);
 
-            _viewEvents = GameController.GameEvents.View;
+            _viewEvents = GameEvents.Instance.View;
         }
 
         public void LoadView(Piece[,] pieces)

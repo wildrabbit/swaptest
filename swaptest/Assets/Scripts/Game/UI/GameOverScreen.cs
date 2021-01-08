@@ -2,6 +2,7 @@
 using System.Collections;
 using System;
 using UnityEngine.UI;
+using Game.Events;
 
 namespace Game.UI
 {
@@ -11,17 +12,24 @@ namespace Game.UI
         [SerializeField] Text _scoreMessage;
         [SerializeField] string _menuScene;
 
-        private void Awake()
+        void Awake()
         {
-            var gameFlowEvents = GameController.GameEvents.Gameplay;
+            var gameFlowEvents = GameEvents.Instance.Gameplay;
             gameFlowEvents.GameStarted += OnGameStarted;
             gameFlowEvents.GameFinished += OnGameFinished;
             Hide();
         }
 
+        void OnDestroy()
+        {
+            var gameFlowEvents = GameEvents.Instance.Gameplay;
+            gameFlowEvents.GameStarted -= OnGameStarted;
+            gameFlowEvents.GameFinished -= OnGameFinished;
+        }
+
         public void OnPlayNew()
         {
-            GameController.GameEvents.UI.DispatchStartGameRequested(isRestart: false);
+            GameEvents.Instance.UI.DispatchStartGameRequested(isRestart: false);
         }
 
         public void OnBackToMenu()

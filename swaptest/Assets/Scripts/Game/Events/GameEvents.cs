@@ -96,5 +96,18 @@ namespace Game.Events
         public UIEvents UI = new UIEvents();
         public BoardEvents Board = new BoardEvents();
         public ViewEvents View = new ViewEvents();
+
+        static GameEvents _instance;
+        public static GameEvents Instance
+        {
+            get
+            {
+                if (_instance == null)
+                {
+                    _instance = new GameEvents();
+                }
+                return _instance;
+            }
+        }
     }
 }

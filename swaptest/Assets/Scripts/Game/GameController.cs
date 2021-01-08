@@ -3,9 +3,7 @@ using Game.Input;
 using Game.Levels;
 using Game.Events;
 using URandom = UnityEngine.Random;
-using System.Timers;
 using Game.Board;
-using System;
 using System.Collections.Generic;
 
 namespace Game
@@ -17,21 +15,22 @@ namespace Game
         [SerializeField] Game.Board.BoardController _boardController;
         [SerializeField] InputController _inputController;
 
-        static GameEvents _gameEvents = new GameEvents();
         bool _running;
         bool _finished;
         int _score;
         float _elapsed;
         float _totalTime;
         string _lastSeed;
+        private GameEvents _gameEvents;
 
         //Timer _debugTimer;
 
-        public static GameEvents GameEvents => _gameEvents;
         public float RemainingTime => _totalTime - _elapsed;
+
 
         void Start()
         {
+            _gameEvents = GameEvents.Instance;
             _gameEvents.Board.MatchesFound += OnMatchesFound;
             _gameEvents.UI.StartGameRequested += OnStartNewGame;
             StartGame();
@@ -51,25 +50,34 @@ namespace Game
 
             if(!_running)
             {
-                if (_boardController.IsStable)
-                {
-                    _gameEvents.Gameplay.DispatchGameFinished(_score);
-                    _finished = true;
-                }
+                WaitForStableBoardAndFinish();
+                return;                
             }
 
             _elapsed += Time.deltaTime;
             _gameEvents.Gameplay.DispatchTimerChanged(_elapsed, _totalTime);
             if (_elapsed >= _totalTime)
-            {
-                //StopTimer();
+            {                
                 _running = false;
+                WaitForStableBoardAndFinish();
             }
+        }
+
+        bool WaitForStableBoardAndFinish()
+        {
+            if (_boardController.IsStable)
+            {
+                _finished = true;
+                _gameEvents.Gameplay.DispatchGameFinished(_score);
+                return true;
+            }
+            return false;
         }
 
         void OnDestroy()
         {
-           // StopTimer();
+            _gameEvents.Board.MatchesFound -= OnMatchesFound;
+            _gameEvents.UI.StartGameRequested -= OnStartNewGame;
         }
 
         void OnMatchesFound(List<MatchInfo> matches, int chainStep)
@@ -123,8 +131,7 @@ namespace Game
                 Debug.Log($"Current random seed: {_lastSeed}");
             }
 
-            _boardController.Init(_levelData);
-            _inputController.Init();
+            _boardController.StartNewGame(_levelData);
             _elapsed = 0;
             _totalTime = _levelData.PlayTime;
             _running = true;
