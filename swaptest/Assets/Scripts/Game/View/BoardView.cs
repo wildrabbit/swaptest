@@ -86,6 +86,7 @@ namespace Game.View
             {
                 StartCoroutine(piece.Explode());
             }
+            _viewEvents.DispatchPiecesExploded(pieces);
             yield return _explodeDelay;
             foreach (var piece in pieces)
             {
@@ -113,6 +114,7 @@ namespace Game.View
             {
                 StartCoroutine(piece.Disappear(_reshuffleDelayDuration * 0.5f));
             }
+            _viewEvents.DispatchReshuffling();
             yield return _reshuffleDelay;
             LoadView(swaps);
             foreach (var piece in _pieceInstances)

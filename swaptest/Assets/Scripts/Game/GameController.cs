@@ -14,6 +14,7 @@ namespace Game
         [SerializeField] GameScoringRules _scoringRules;
         [SerializeField] Game.Board.BoardController _boardController;
         [SerializeField] InputController _inputController;
+        [SerializeField] float _runOutElapsedRemaining = 5f;
 
         bool _running;
         bool _finished;
@@ -21,11 +22,14 @@ namespace Game
         float _elapsed;
         float _totalTime;
         string _lastSeed;
+        bool _notifiedRunningOut = false;
         private GameEvents _gameEvents;
 
         //Timer _debugTimer;
 
         public float RemainingTime => _totalTime - _elapsed;
+        public bool Running => _running;
+        public bool Finished => _finished;
 
 
         void Start()
@@ -57,9 +61,15 @@ namespace Game
             _elapsed += Time.deltaTime;
             _gameEvents.Gameplay.DispatchTimerChanged(_elapsed, _totalTime);
             if (_elapsed >= _totalTime)
-            {                
+            {
+                _gameEvents.Gameplay.DispatchTimerExpired();
                 _running = false;
                 WaitForStableBoardAndFinish();
+            }
+            else if (!_notifiedRunningOut && RemainingTime < _runOutElapsedRemaining)
+            {
+                _gameEvents.Gameplay.DispatchTimerRunningOut();
+                _notifiedRunningOut = true;
             }
         }
 
@@ -137,6 +147,7 @@ namespace Game
             _running = true;
             _finished = false;
             _score = 0;
+            _notifiedRunningOut = false;
             _gameEvents.Gameplay.DispatchGameStarted(_score, _elapsed, _totalTime);
             _boardController.BeginBoardUpdatePhase();
             //StartTimer();

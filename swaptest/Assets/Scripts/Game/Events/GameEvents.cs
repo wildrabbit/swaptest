@@ -3,6 +3,7 @@ using System.Collections;
 using System;
 using System.Collections.Generic;
 using Game.Board;
+using Game.View;
 
 namespace Game.Events
 {
@@ -12,6 +13,8 @@ namespace Game.Events
         public event Action<int> GameFinished;
         public event Action<int, int> ScoreChanged;
         public event Action<float, float> TimerChanged;
+        public event Action TimerExpired;
+        public event Action TimerRunningOut;
 
         public void DispatchGameStarted(int score, float elapsed, float totalTime)
         {
@@ -28,6 +31,14 @@ namespace Game.Events
         public void DispatchTimerChanged(float elapsed, float totalTime)
         {
             TimerChanged?.Invoke(elapsed, totalTime);
+        }
+        public void DispatchTimerExpired()
+        {
+            TimerExpired?.Invoke();
+        }
+        public void DispatchTimerRunningOut()
+        {
+            TimerRunningOut?.Invoke();
         }
     }
     public class UIEvents
@@ -49,10 +60,15 @@ namespace Game.Events
     public class BoardEvents
     {
         public event Action<List<MatchInfo>, int> MatchesFound;
+        public event Action DropStepCompleted;
 
         public void DispatchMatchesFound(List<MatchInfo> matches, int chainStep)
         {
             MatchesFound?.Invoke(matches, chainStep);
+        }
+        public void DispatchDropStepCompleted()
+        {
+            DropStepCompleted?.Invoke();
         }
     }
 
@@ -63,6 +79,9 @@ namespace Game.Events
         public event Action SwapAttemptStarted;
         public event Action FailedSwapAttempt;
         public event Action<Vector2Int, Vector2Int> SwapAnimationCompleted;
+        public event Action<List<PieceView>> PiecesExploded;
+        public event Action DropCompleted;
+        public event Action Reshuffling;
 
         public void DispatchBoardUpdateCompleted()
         {
@@ -87,6 +106,21 @@ namespace Game.Events
         public void DispatchSwapAnimationCompleted(Vector2Int sourceCoords, Vector2Int targetCoords)
         {
             SwapAnimationCompleted?.Invoke(sourceCoords, targetCoords);
+        }
+
+        public void DispatchPiecesExploded(List<PieceView> pieces)
+        {
+            PiecesExploded?.Invoke(pieces);
+        }
+
+        public void DispatchDropCompleted()
+        {
+            DropCompleted?.Invoke();
+        }
+
+        public void DispatchReshuffling()
+        {
+            Reshuffling?.Invoke();
         }
     }
 

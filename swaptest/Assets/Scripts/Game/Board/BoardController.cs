@@ -98,6 +98,7 @@ namespace Game.Board
                     matches = MatchFinder.FindMatches(_pieces);
                     chainStep++;
                 }
+                _boardEvents.DispatchDropStepCompleted();
                 int possibleMatches = CountCoordsWithMatches();
                 int reshuffleCount = 0;
                 while (possibleMatches == 0 && reshuffleCount < _maxReshuffles)

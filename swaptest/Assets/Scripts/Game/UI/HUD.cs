@@ -14,6 +14,12 @@ namespace Game.UI
         [SerializeField] Button _toggleSfx;
         [SerializeField] Button _toggleMusic;
 
+        [SerializeField] RectTransform _reshufflingFeedback;
+        [SerializeField] float _reshuffleVisibleDuration = 1.0f;
+
+        WaitForSeconds _reshuffleDelay;
+        Coroutine _reshuffleRoutine;
+
         void Awake()
         {
             var gameplayEvents = GameEvents.Instance.Gameplay;
@@ -21,6 +27,11 @@ namespace Game.UI
             gameplayEvents.GameFinished += OnGameFinished;
             gameplayEvents.ScoreChanged += OnScoreChanged;
             gameplayEvents.TimerChanged += OnTimerChanged;
+            var viewEvents = GameEvents.Instance.View;
+            viewEvents.Reshuffling += OnReshuffling;
+
+            _reshuffleDelay = new WaitForSeconds(_reshuffleVisibleDuration);
+            _reshufflingFeedback.gameObject.SetActive(false);
         }
 
         void OnDestroy()
@@ -30,20 +41,46 @@ namespace Game.UI
             gameFlowEvents.GameFinished -= OnGameFinished;
             gameFlowEvents.ScoreChanged -= OnScoreChanged;
             gameFlowEvents.TimerChanged -= OnTimerChanged;
+            var viewEvents = GameEvents.Instance.View;
+            viewEvents.Reshuffling -= OnReshuffling;
         }
 
-        private void OnTimerChanged(float elapsed, float totalTime)
+        void OnReshuffling()
+        {
+            StopExistingReshuffleRoutine();
+            _reshuffleRoutine = StartCoroutine(ReshuffleFeedback());
+        }
+
+        void StopExistingReshuffleRoutine()
+        {
+            if (_reshuffleRoutine != null)
+            {
+                StopCoroutine(_reshuffleRoutine);
+                _reshufflingFeedback.gameObject.SetActive(false);
+            }
+        }
+
+        IEnumerator ReshuffleFeedback()
+        {
+            _reshufflingFeedback.gameObject.SetActive(true);
+            // TODO: Add visual improvs (tween scale, alpha, etc)
+            yield return _reshuffleDelay;
+            _reshufflingFeedback.gameObject.SetActive(false);
+        }
+
+        void OnTimerChanged(float elapsed, float totalTime)
         {
             UpdateTime(totalTime - elapsed);
         }
 
-        private void OnScoreChanged(int delta, int total)
+        void OnScoreChanged(int delta, int total)
         {
             UpdateScore(total);
         }
 
-        private void OnGameFinished(int score)
+        void OnGameFinished(int score)
         {
+            StopExistingReshuffleRoutine();
             UpdateScore(score);
         }
 
