@@ -12,9 +12,12 @@ namespace Game.UI
         [SerializeField] Text _scoreMessage;
         [SerializeField] string _menuScene;
 
+        GameEvents _gameEvents;
+
         void Awake()
         {
-            var gameFlowEvents = GameEvents.Instance.Gameplay;
+            _gameEvents = GameEvents.Instance;
+            var gameFlowEvents = _gameEvents.Gameplay;
             gameFlowEvents.GameStarted += OnGameStarted;
             gameFlowEvents.GameFinished += OnGameFinished;
             Hide();
@@ -22,18 +25,20 @@ namespace Game.UI
 
         void OnDestroy()
         {
-            var gameFlowEvents = GameEvents.Instance.Gameplay;
+            var gameFlowEvents = _gameEvents.Gameplay;
             gameFlowEvents.GameStarted -= OnGameStarted;
             gameFlowEvents.GameFinished -= OnGameFinished;
         }
 
         public void OnPlayNew()
         {
-            GameEvents.Instance.UI.DispatchStartGameRequested(isRestart: false);
+            _gameEvents.UI.DispatchButtonTapped();
+            _gameEvents.UI.DispatchStartGameRequested(isRestart: false);
         }
 
         public void OnBackToMenu()
         {
+            _gameEvents.UI.DispatchButtonTapped();
             UnityEngine.SceneManagement.SceneManager.LoadScene(_menuScene);
         }
 

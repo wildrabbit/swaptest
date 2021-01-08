@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using Game.Events;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -19,11 +20,14 @@ namespace Game.UI
 
         public void OnPlay()
         {
+
+            GameEvents.Instance.UI.DispatchButtonTapped();
             UnityEngine.SceneManagement.SceneManager.LoadScene(_gameScene);
         }
 
         public void OnExit()
         {
+            GameEvents.Instance.UI.DispatchButtonTapped();
 #if UNITY_EDITOR
             UnityEditor.EditorApplication.isPlaying = false;
 #else

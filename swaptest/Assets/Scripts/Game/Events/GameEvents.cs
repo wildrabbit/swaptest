@@ -33,16 +33,16 @@ namespace Game.Events
     public class UIEvents
     {
         public event Action<bool> StartGameRequested;
-        public event Action PauseToggled;
+        public event Action ButtonTapped;
 
         public void DispatchStartGameRequested(bool isRestart)
         {
             StartGameRequested?.Invoke(isRestart);
         }
-
-        public void DispatchPauseToggled()
+        
+        public void DispatchButtonTapped()
         {
-            PauseToggled?.Invoke();
+            ButtonTapped?.Invoke();
         }
     }
 
