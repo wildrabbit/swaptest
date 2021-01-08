@@ -19,22 +19,23 @@ namespace Game.Input
 
         void Awake()
         {
-            UInput.simulateMouseWithTouches = true;
-            _boardView.BoardUpdateCompleted += OnBoardUpdateCompleted;
-            _boardView.BoardUpdateStarted += OnBoardUpdateStarted;
-            _boardView.SwapAttemptStarted += OnSwapAttemptStarted;
-            _boardView.FailedSwapAttempt += OnFailedSwapAttempt;
+            UInput.simulateMouseWithTouches = true;            
         }
 
         public void Init()
         {
-            GameController.GameEvents.GameFlow.GameStarted -= OnGameStarted;
-            GameController.GameEvents.GameFlow.GameStarted += OnGameStarted;
-            GameController.GameEvents.GameFlow.GameFinished -= OnGameFinished;
-            GameController.GameEvents.GameFlow.GameFinished += OnGameFinished;
+            var gameplayEvents = GameController.GameEvents.Gameplay;
+            gameplayEvents.GameStarted += OnGameStarted;
+            gameplayEvents.GameFinished += OnGameFinished;
+
+            var viewEvents = GameController.GameEvents.View;
+            viewEvents.BoardUpdateCompleted += OnBoardUpdateCompleted;
+            viewEvents.BoardUpdateStarted += OnBoardUpdateStarted;
+            viewEvents.SwapAttemptStarted += OnSwapAttemptStarted;
+            viewEvents.FailedSwapAttempt += OnFailedSwapAttempt;            
         }
 
-        void OnGameStarted()
+        void OnGameStarted(int score, float elapsedTime, float totalTime)
         {
             SetInputEnabled(true);
         }
@@ -68,10 +69,11 @@ namespace Game.Input
 
         void OnDestroy()
         {
-            _boardView.BoardUpdateCompleted -= OnBoardUpdateCompleted;
-            _boardView.BoardUpdateStarted -= OnBoardUpdateStarted;
-            _boardView.SwapAttemptStarted -= OnSwapAttemptStarted;
-            _boardView.FailedSwapAttempt -= OnFailedSwapAttempt;
+            var viewEvents = GameController.GameEvents.View;
+            viewEvents.BoardUpdateCompleted -= OnBoardUpdateCompleted;
+            viewEvents.BoardUpdateStarted -= OnBoardUpdateStarted;
+            viewEvents.SwapAttemptStarted -= OnSwapAttemptStarted;
+            viewEvents.FailedSwapAttempt -= OnFailedSwapAttempt;
         }
 
         // Update is called once per frame
@@ -152,22 +154,21 @@ namespace Game.Input
 
         void SelectPiece(PieceView piece)
         {
-            Debug.Log($"Selected piece @ {piece.Coords}");
-            if (_selectedPiece != null && _selectedPiece != piece)
+            //Debug.Log($"Selected piece @ {piece.Coords}");
+            if (_selectedPiece != piece)
             {
-                //_selectedPiece.Deselect();
-                _selectedPiece = null;
+                CancelSelection();
             }
             _selectedPiece = piece;
-            // _selectedPiece.Select();
+            _selectedPiece.Select();
         }
 
         void CancelSelection()
         {
             if (_selectedPiece != null)
             {
+                _selectedPiece.Deselect();
                 _selectedPiece = null;
-                //_selectedPiece.Deselect();
             }
         }
 

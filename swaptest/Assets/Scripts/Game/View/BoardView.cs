@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Game.Board;
 using UnityEngine;
+using Game.Events;
 
 namespace Game.View
 {
@@ -32,18 +33,16 @@ namespace Game.View
         WaitForSeconds _dropDelay;
         WaitForSeconds _reshuffleDelay;
 
-        public event Action SwapAttemptStarted;
-        public event Action<Vector2Int, Vector2Int> SwapAnimationCompleted;
-        public event Action FailedSwapAttempt;
-        public event Action BoardUpdateStarted;
-        public event Action BoardUpdateCompleted;
+        ViewEvents _viewEvents;
 
-        void Awake()
+        void Start()
         {
             _swapDelay = new WaitForSeconds(_swapDelayDuration);
             _explodeDelay = new WaitForSeconds(_explodeDelayDuration);
             _dropDelay = new WaitForSeconds(_dropDelayDuration);
             _reshuffleDelay = new WaitForSeconds(_reshuffleDelayDuration);
+
+            _viewEvents = GameController.GameEvents.View;
         }
 
         public void LoadView(Piece[,] pieces)
@@ -110,16 +109,23 @@ namespace Game.View
 
         public IEnumerator Reshuffle(Piece[,] swaps)
         {
-            LoadView(swaps);
+            foreach (var piece in _pieceInstances)
+            {
+                StartCoroutine(piece.Disappear(_reshuffleDelayDuration * 0.5f));
+            }
             yield return _reshuffleDelay;
+            LoadView(swaps);
+            foreach (var piece in _pieceInstances)
+            {
+                StartCoroutine(piece.Appear(_reshuffleDelayDuration * 0.5f));
+            }
         }
-
         public IEnumerator Refill(List<(Piece, Vector2Int)> newPieces)
         {
             var generatedPieces = GeneratePieceList(newPieces);
             foreach (var piece in generatedPieces)
             {
-                StartCoroutine(piece.SpawnDrop1());
+                StartCoroutine(piece.Appear(_reshuffleDelayDuration * 0.5f));
             }
             yield return null;
         }
@@ -164,18 +170,18 @@ namespace Game.View
 
         public void PrepareBoardUpdate()
         {
-            BoardUpdateStarted?.Invoke();
+            _viewEvents.DispatchBoardUpdateStarted();
         }
 
         public void CompleteBoardUpdate()
         {
-            BoardUpdateCompleted?.Invoke();
+            _viewEvents.DispatchBoardUpdateCompleted();
         }
 
         public void AttemptSwap(PieceView selectedPiece, PieceView swapCandidatePiece)
         {
-            Debug.Log($"Attempting swap between @ {selectedPiece.Coords} and {swapCandidatePiece.Coords} ");
-            SwapAttemptStarted?.Invoke();
+            //Debug.Log($"Attempting swap between @ {selectedPiece.Coords} and {swapCandidatePiece.Coords} ");
+            _viewEvents.DispatchSwapAttemptStarted();
             StartCoroutine(TrySwapPieces(selectedPiece, swapCandidatePiece));
         }
 
@@ -196,7 +202,7 @@ namespace Game.View
             }
             yield return _swapDelay;
 
-            SwapAnimationCompleted?.Invoke(selectedPiece.Coords, swapCandidatePiece.Coords);
+            _viewEvents.DispatchSwapAnimationCompleted(selectedPiece.Coords, swapCandidatePiece.Coords);
         }
 
         public void ConfirmSwapAttempt(Vector2Int selected, Vector2Int candidate)
@@ -235,7 +241,7 @@ namespace Game.View
                 yield return null;
                 duration += Time.deltaTime;
             }
-            FailedSwapAttempt?.Invoke();
+            _viewEvents.DispatchFailedSwapAttempt();
         }
 
         public bool PositionInsideBounds(Vector3 pos)

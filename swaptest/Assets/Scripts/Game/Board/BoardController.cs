@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Game.View;
 using URandom = UnityEngine.Random;
+using Game.Events;
 
 namespace Game.Board
 {
@@ -34,6 +35,15 @@ namespace Game.Board
         public BoardView View => _view;
         public bool IsStable => _currentPhase == BoardUpdatePhase.Stable;
 
+        ViewEvents _viewEvents;
+        BoardEvents _boardEvents;
+
+        void Start()
+        {
+            _viewEvents = GameController.GameEvents.View;
+            _viewEvents.SwapAnimationCompleted += OnSwapAnimationCompleted;
+            _boardEvents = GameController.GameEvents.Board;
+        }
 
         public void Init(BaseLevelData level)
         {
@@ -42,16 +52,9 @@ namespace Game.Board
             _currentPhase = BoardUpdatePhase.Stable;
         }
 
-        void OnDestroy()
-        {
-            _view.SwapAnimationCompleted -= OnSwapAnimationCompleted;
-        }
-
         void LoadView()
         {
-            _view.SwapAnimationCompleted -= OnSwapAnimationCompleted;
-            _view.LoadView(_pieces);
-            _view.SwapAnimationCompleted += OnSwapAnimationCompleted;
+            _view.LoadView(_pieces);            
         }
 
         void OnSwapAnimationCompleted(Vector2Int selectedCoords, Vector2Int targetCoords)
@@ -74,28 +77,38 @@ namespace Game.Board
 
         IEnumerator BoardUpdateRoutine()
         {
-            _currentPhase = BoardUpdatePhase.Matching;
             _view.PrepareBoardUpdate();
-            var matches = MatchFinder.FindMatches(_pieces);
-            while (matches.Count > 0)
+            int chainStep = 0;
+
+            List<MatchInfo> matches = MatchFinder.FindMatches(_pieces);
+            do
             {
-                // TODO: Scoring, special generation, etc
-                yield return ClearPieces(GetExplodingPieces(matches));
-                yield return ApplyGravityAndRegenerate();
+                _currentPhase = BoardUpdatePhase.Matching;
+                while (matches.Count > 0)
+                {
+                    _boardEvents.DispatchMatchesFound(matches, chainStep);
+                    yield return ClearPieces(GetExplodingPieces(matches));
+                    yield return ApplyGravityAndRegenerate();
+                    matches = MatchFinder.FindMatches(_pieces);
+                    chainStep++;
+                }
+                int possibleMatches = CountCoordsWithMatches();
+                int reshuffleCount = 0;
+                while (possibleMatches == 0 && reshuffleCount < _maxReshuffles)
+                {
+                    _currentPhase = BoardUpdatePhase.Reshuffling;
+                    yield return Reshuffle();
+                    possibleMatches = CountCoordsWithMatches();
+                    reshuffleCount++;
+                }
+
                 matches = MatchFinder.FindMatches(_pieces);
-            }
-            int possibleMatches = CountCoordsWithMatches();
-            int reshuffleCount = 0;
-            while (possibleMatches == 0 && reshuffleCount < _maxReshuffles)
-            {
-                _currentPhase = BoardUpdatePhase.Reshuffling;
-                yield return Reshuffle();
-                possibleMatches = CountCoordsWithMatches();
-                reshuffleCount++;
-            }
-            yield return null;
-            _currentPhase = BoardUpdatePhase.Stable;
-            
+                if(matches.Count == 0)
+                {
+                    _currentPhase = BoardUpdatePhase.Stable;
+                }
+                yield return null;
+            } while(_currentPhase != BoardUpdatePhase.Stable);            
             _view.CompleteBoardUpdate();
         }
 

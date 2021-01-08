@@ -12,9 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a4ea5c97a71d95b48b23c6af3a5af684, type: 3}
   m_Name: TestLevel
   m_EditorClassIdentifier: 
-  _playTime: 60
-  _isSeeded: 0
-  _randomSeed: 
+  _playTime: 15
+  _isSeeded: 1
+  _randomSeed: '{"s0":123745219,"s1":1446748564,"s2":761610485,"s3":-981601145}'
   _firstRowAtTop: 1
   _levelLayout: '5,5
 

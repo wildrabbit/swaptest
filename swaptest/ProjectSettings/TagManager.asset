@@ -53,3 +53,9 @@ TagManager:
   - name: PieceOverlays
     uniqueID: 3737412227
     locked: 0
+  - name: HUD
+    uniqueID: 2474550065
+    locked: 0
+  - name: Popups
+    uniqueID: 1561704443
+    locked: 0

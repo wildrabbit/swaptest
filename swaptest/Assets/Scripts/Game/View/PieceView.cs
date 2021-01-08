@@ -60,15 +60,29 @@ namespace Game.View
             yield return null;
         }
 
-        public IEnumerator Drop1()
+        public IEnumerator Disappear(float duration)
         {
-            yield return null;
+            float time = 0.0f;
+            while (time < duration)
+            {
+                transform.localScale = Vector3.Lerp(Vector3.one, Vector3.zero, time / duration);
+                yield return null;
+                time += Time.deltaTime;
+            }
+            gameObject.SetActive(false);
         }
 
-        public IEnumerator SpawnDrop1()
+        public IEnumerator Appear(float duration)
         {
             gameObject.SetActive(true);
-            yield return null;
+            var time = 0.0f;
+            while (time < duration)
+            {
+                transform.localScale = Vector3.Lerp(Vector3.zero, Vector3.one, time / duration);
+                yield return null;
+                time += Time.deltaTime;
+            }
+
         }
 
         public IEnumerator Drop(Vector2Int dropCoords, Vector3 newPos, float duration)
@@ -82,27 +96,6 @@ namespace Game.View
                 time += Time.deltaTime;
             }
             _coords = dropCoords;
-        }
-
-        public IEnumerator Shuffle(Vector2Int newCoords, Vector3 newPos, float duration)
-        {
-            float time = 0.0f;
-            float halvedDuration = duration * 0.5f;
-            while (time < halvedDuration)
-            {
-                transform.localScale = Vector3.Lerp(Vector3.one, Vector3.zero, time / halvedDuration);
-                yield return null;
-                time += Time.deltaTime;
-            }
-            transform.localPosition = newPos;
-            time = 0.0f;
-            while (time < halvedDuration)
-            {
-                transform.localScale = Vector3.Lerp(Vector3.zero, Vector3.one, time / halvedDuration);
-                yield return null;
-                time += Time.deltaTime;
-            }
-            _coords = newCoords;
         }
     }
 }

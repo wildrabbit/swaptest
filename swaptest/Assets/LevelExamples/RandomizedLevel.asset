@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 13ff271c013cdf449b428f34d7093c95, type: 3}
   m_Name: RandomizedLevel
   m_EditorClassIdentifier: 
-  _playTime: 60
+  _playTime: 8
   _isSeeded: 0
   _randomSeed: 
   _rows: 9
