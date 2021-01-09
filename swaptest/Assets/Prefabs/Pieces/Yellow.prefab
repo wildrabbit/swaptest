@@ -181,6 +181,12 @@ PrefabInstance:
       propertyPath: _animator
       value: 
       objectReference: {fileID: 874499797802423104}
+    - target: {fileID: 6827907440890555389, guid: 1cab4c10b617b7a42992206929241914,
+        type: 3}
+      propertyPath: _pieceExplosionPrefab
+      value: 
+      objectReference: {fileID: 4655321403231622268, guid: 5d36731d5dfe1904b9c6145b80bb4e10,
+        type: 3}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 1cab4c10b617b7a42992206929241914, type: 3}
 --- !u!4 &7763040649083923593 stripped

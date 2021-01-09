@@ -24,6 +24,11 @@ namespace Game.Audio
         {
             base.Awake();
 
+            SubscribeToEvents();
+        }
+
+        private void SubscribeToEvents()
+        {
             var gameEvents = GameEvents.Instance;
             var viewEvents = gameEvents.View;
             viewEvents.SwapAttemptStarted += OnSwapStarted;
@@ -37,7 +42,32 @@ namespace Game.Audio
             gameplayEvents.GameFinished += OnGameFinished;
             gameplayEvents.TimerRunningOut += OnTimerRunningOut;
             gameplayEvents.TimerExpired += OnTimerExpired;
+        }
 
+        protected override void OnDestroy()
+        {
+            base.OnDestroy();
+            UnsubscribeFromEvents();
+        }
+
+        private void UnsubscribeFromEvents()
+        {
+            var gameEvents = GameEvents.Instance;
+            var viewEvents = gameEvents.View;
+            viewEvents.SwapAttemptStarted -= OnSwapStarted;
+            viewEvents.FailedSwapAttempt -= OnSwapFailed;
+            viewEvents.PiecesExploded -= OnPiecesExploded;
+            viewEvents.DropCompleted -= OnDropCompleted;
+            viewEvents.Reshuffling -= OnReshuffling;
+
+            var boardEvents = gameEvents.Board;
+            boardEvents.DropStepCompleted -= OnDropCompleted;
+
+            var gameplayEvents = gameEvents.Gameplay;
+            gameplayEvents.GameStarted -= OnGameStarted;
+            gameplayEvents.GameFinished -= OnGameFinished;
+            gameplayEvents.TimerRunningOut -= OnTimerRunningOut;
+            gameplayEvents.TimerExpired -= OnTimerExpired;
         }
 
         void OnTimerExpired()
@@ -58,27 +88,6 @@ namespace Game.Audio
         void OnGameStarted(int arg1, float arg2, float arg3)
         {
             _audioSource.PlayOneShot(_gameStarted);
-        }
-
-        protected void OnDestroy()
-        {
-            base.OnDestroy();
-            var gameEvents = GameEvents.Instance;
-            var viewEvents = gameEvents.View;
-            viewEvents.SwapAttemptStarted -= OnSwapStarted;
-            viewEvents.FailedSwapAttempt -= OnSwapFailed;
-            viewEvents.PiecesExploded -= OnPiecesExploded;
-            viewEvents.DropCompleted -= OnDropCompleted;
-            viewEvents.Reshuffling -= OnReshuffling;
-
-            var boardEvents = gameEvents.Board;
-            boardEvents.DropStepCompleted -= OnDropCompleted;
-
-            var gameplayEvents = gameEvents.Gameplay;
-            gameplayEvents.GameStarted -= OnGameStarted;
-            gameplayEvents.GameFinished -= OnGameFinished;
-            gameplayEvents.TimerRunningOut -= OnTimerRunningOut;
-            gameplayEvents.TimerExpired -= OnTimerExpired;
         }
 
         void OnSwapStarted()

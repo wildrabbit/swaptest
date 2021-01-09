@@ -56,6 +56,9 @@ TagManager:
   - name: HUD
     uniqueID: 2474550065
     locked: 0
+  - name: FX
+    uniqueID: 4226864407
+    locked: 0
   - name: Popups
     uniqueID: 1561704443
     locked: 0

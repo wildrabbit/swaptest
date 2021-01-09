@@ -11,6 +11,7 @@ namespace Game.View
         [SerializeField] Colour _colour;
         [SerializeField] GameObject _selectionOverlay;
         [SerializeField] Animator _animator;
+        [SerializeField] GameObject _pieceExplosionPrefab;
 
         public PieceType PieceType => _pieceType;
         public Colour Colour => _colour;
@@ -55,8 +56,9 @@ namespace Game.View
         public IEnumerator Explode()
         {
             // Play explode animation
-            // Disable view
-            // Play explode VFX
+            gameObject.SetActive(false);
+            var vfx = Instantiate(_pieceExplosionPrefab, transform.parent);
+            vfx.transform.localPosition = transform.localPosition;
             yield return null;
         }
 

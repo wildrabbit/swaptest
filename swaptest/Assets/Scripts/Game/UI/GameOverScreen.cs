@@ -12,34 +12,25 @@ namespace Game.UI
         [SerializeField] Text _scoreMessage;
         [SerializeField] string _menuScene;
 
-        GameEvents _gameEvents;
+        UIEvents _uiEvents;
 
-        void Awake()
+        private void Awake()
         {
-            _gameEvents = GameEvents.Instance;
-            var gameFlowEvents = _gameEvents.Gameplay;
-            gameFlowEvents.GameStarted += OnGameStarted;
-            gameFlowEvents.GameFinished += OnGameFinished;
-            Hide();
-        }
-
-        void OnDestroy()
-        {
-            var gameFlowEvents = _gameEvents.Gameplay;
-            gameFlowEvents.GameStarted -= OnGameStarted;
-            gameFlowEvents.GameFinished -= OnGameFinished;
+            _uiEvents = GameEvents.Instance.UI;
         }
 
         public void OnPlayNew()
         {
-            _gameEvents.UI.DispatchButtonTapped();
-            _gameEvents.UI.DispatchStartGameRequested(isRestart: false);
+            _uiEvents.DispatchButtonTapped();
+            _uiEvents.DispatchStartGameRequested(isRestart: false);
+            Close();
         }
 
         public void OnBackToMenu()
         {
-            _gameEvents.UI.DispatchButtonTapped();
+            _uiEvents.DispatchButtonTapped();
             UnityEngine.SceneManagement.SceneManager.LoadScene(_menuScene);
+            Close();
         }
 
         public void Show(int finalScore)
@@ -48,19 +39,9 @@ namespace Game.UI
             _scoreMessage.text = string.Format(kGameOverTextPattern, finalScore);
         }
 
-        public void Hide()
+        public void Close()
         {
-            gameObject.SetActive(false);
-        }
-
-        private void OnGameFinished(int finalScore)
-        {
-            Show(finalScore);
-        }
-
-        private void OnGameStarted(int score, float elapsedTime, float remainingTime)
-        {
-            Hide();
+            Destroy(gameObject);
         }
     }
 }

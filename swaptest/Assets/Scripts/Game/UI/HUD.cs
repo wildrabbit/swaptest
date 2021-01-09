@@ -17,6 +17,8 @@ namespace Game.UI
         [SerializeField] RectTransform _reshufflingFeedback;
         [SerializeField] float _reshuffleVisibleDuration = 1.0f;
 
+        [SerializeField] GameOverScreen _gameOverScreenPrefab;
+
         WaitForSeconds _reshuffleDelay;
         Coroutine _reshuffleRoutine;
 
@@ -78,10 +80,13 @@ namespace Game.UI
             UpdateScore(total);
         }
 
-        void OnGameFinished(int score)
+        void OnGameFinished(int finalScore)
         {
             StopExistingReshuffleRoutine();
-            UpdateScore(score);
+            UpdateScore(finalScore);
+
+            var gameOverPopup = Instantiate(_gameOverScreenPrefab);
+            gameOverPopup.Show(finalScore);
         }
 
         void OnGameStarted(int score, float elapsed, float totalTime)
