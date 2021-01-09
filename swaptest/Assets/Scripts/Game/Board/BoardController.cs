@@ -93,7 +93,7 @@ namespace Game.Board
                 while (matches.Count > 0)
                 {
                     _boardEvents.DispatchMatchesFound(matches, chainStep);
-                    yield return ClearPieces(GetExplodingPieces(matches));
+                    yield return ClearPieces(GetExplodingPieces(matches), chainStep);
                     yield return ApplyGravityAndRegenerate();
                     matches = MatchFinder.FindMatches(_pieces);
                     chainStep++;
@@ -183,7 +183,7 @@ namespace Game.Board
             } while (gapFound);
         }
 
-        private IEnumerator ClearPieces(HashSet<Vector2Int> matchingCoordinates)
+        private IEnumerator ClearPieces(HashSet<Vector2Int> matchingCoordinates, int chainStep)
         {
             _currentPhase = BoardUpdatePhase.Exploding;
             foreach(var coords in matchingCoordinates)
@@ -191,7 +191,7 @@ namespace Game.Board
                 (int row, int col) = (coords.x, coords.y);
                 _pieces[row, col] = null;
             }
-            yield return _view.ExplodePieces(matchingCoordinates);
+            yield return _view.ExplodePieces(matchingCoordinates, chainStep);
         }
 
         private HashSet<Vector2Int> GetExplodingPieces(List<MatchInfo> matches)

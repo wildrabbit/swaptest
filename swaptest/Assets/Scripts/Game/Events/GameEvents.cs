@@ -85,7 +85,7 @@ namespace Game.Events
         public event Action SwapAttemptStarted;
         public event Action FailedSwapAttempt;
         public event Action<Vector2Int, Vector2Int> SwapAnimationCompleted;
-        public event Action<List<PieceView>> PiecesExploded;
+        public event Action<List<PieceView>, int> PiecesExploded;
         public event Action DropCompleted;
         public event Action Reshuffling;
 
@@ -114,9 +114,9 @@ namespace Game.Events
             SwapAnimationCompleted?.Invoke(sourceCoords, targetCoords);
         }
 
-        public void DispatchPiecesExploded(List<PieceView> pieces)
+        public void DispatchPiecesExploded(List<PieceView> pieces, int chainStep)
         {
-            PiecesExploded?.Invoke(pieces);
+            PiecesExploded?.Invoke(pieces, chainStep);
         }
 
         public void DispatchDropCompleted()

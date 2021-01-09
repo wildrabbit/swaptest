@@ -12,7 +12,7 @@ namespace Game.Audio
         [Header("Gameplay-specific settings")]
         [SerializeField] AudioClip _swapStart;
         [SerializeField] AudioClip _swapFailed;
-        [SerializeField] AudioClip _matchExplosion;
+        [SerializeField] AudioClip[] _matchExplosionVariations;
         [SerializeField] AudioClip _dropCompleted;
         [SerializeField] AudioClip _reshuffling;
         [SerializeField] AudioClip _timerRunning;
@@ -100,10 +100,14 @@ namespace Game.Audio
             _audioSource.PlayOneShot(_swapFailed);
         }
 
-        void OnPiecesExploded(List<PieceView> pieces)
+        void OnPiecesExploded(List<PieceView> pieces, int chainStep)
         {
-            // Polish: Pass around chain index so we can use sound variations
-            _audioSource.PlayOneShot(_matchExplosion);
+            int numVariations = _matchExplosionVariations.Length;
+            var variationClip = (chainStep >= numVariations)
+                ? _matchExplosionVariations[numVariations - 1]
+                : _matchExplosionVariations[chainStep];
+
+            _audioSource.PlayOneShot(variationClip);
         }
 
         void OnDropCompleted()

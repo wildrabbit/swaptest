@@ -87,14 +87,14 @@ namespace Game.View
             _swapping = false;
         }
 
-        public IEnumerator ExplodePieces(IEnumerable<Vector2Int> matchingCoordinates)
+        public IEnumerator ExplodePieces(IEnumerable<Vector2Int> matchingCoordinates, int chainStep)
         {
             var pieces = GetPieces(matchingCoordinates);
             foreach(var piece in pieces)
             {
                 StartCoroutine(piece.Explode());
             }
-            _viewEvents.DispatchPiecesExploded(pieces);
+            _viewEvents.DispatchPiecesExploded(pieces, chainStep);
             yield return _explodeDelay;
             foreach (var piece in pieces)
             {
