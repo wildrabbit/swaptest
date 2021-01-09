@@ -65,9 +65,9 @@ namespace Game.Board
 
         void OnSwapAnimationCompleted(Vector2Int selectedCoords, Vector2Int targetCoords)
         {
-            if(CanMatch(selectedCoords, targetCoords))
+            if(CanSwapPiecesAtCoords(selectedCoords, targetCoords))
             {
-                SwapPositions(selectedCoords, targetCoords);
+                SwapPiecesAtCoords(selectedCoords, targetCoords);
                 BeginBoardUpdatePhase();
             }
             else
@@ -121,13 +121,8 @@ namespace Game.Board
 
         private IEnumerator Reshuffle()
         {
-            Dictionary<Vector2Int, Vector2Int> swaps = new Dictionary<Vector2Int, Vector2Int>();
             int totalPieces = _pieces.Length;
-            for(int i = 0; i < totalPieces; ++i)
-            {
-                Vector2Int startCoords = new Vector2Int(i / _rows, i % _rows);
-                swaps.Add(startCoords, startCoords);
-            }
+
             for (int idx = totalPieces - 1; idx >= 0; idx--)
             {
                 int swapIdx = URandom.Range(0, idx + 1);
@@ -139,12 +134,8 @@ namespace Game.Board
                 Piece srcPiece = _pieces[srcRow, srcCol];
                 Piece swapPiece = _pieces[swapRow, swapCol];
                 PieceType auxType = srcPiece.PieceType;
-                Colour auxColour = srcPiece.Colour;
-                srcPiece.UpdateData(swapPiece.PieceType, swapPiece.Colour);
-                var srcCoords = new Vector2Int(srcRow, srcCol);
-                var swapCoords = new Vector2Int(swapRow, swapCol);
-                swaps[srcCoords] = swapCoords;
-                swaps[swapCoords] = srcCoords;
+                PieceColour auxColour = srcPiece.Colour;
+                srcPiece.UpdateData(swapPiece.PieceType, swapPiece.Colour);                
                 swapPiece.UpdateData(auxType, auxColour);              
             }         
             yield return _view.Reshuffle(_pieces);
@@ -158,6 +149,7 @@ namespace Game.Board
             List<(Piece, Vector2Int)> newPieces = new List<(Piece, Vector2Int)>();
             do
             {
+                // TODO: Account for varying drop heights + refill so the dropping animations will be smoother
                 gapFound = false;
                 for (int row = 0; row < _rows; ++row)
                 {
@@ -215,18 +207,18 @@ namespace Game.Board
             return set;
         }
 
-        private void SwapPositions(Vector2Int selectedCoords, Vector2Int targetCoords)
+        private void SwapPiecesAtCoords(Vector2Int selectedCoords, Vector2Int targetCoords)
         {
             Piece src = _pieces[selectedCoords.x, selectedCoords.y];
             Piece tgt = _pieces[targetCoords.x, targetCoords.y];
             PieceType auxType = src.PieceType;
-            Colour auxColour = src.Colour;
+            PieceColour auxColour = src.Colour;
             src.UpdateData(tgt.PieceType, tgt.Colour);
             tgt.UpdateData(auxType, auxColour);
             _view.ConfirmSwapAttempt(selectedCoords, targetCoords);
         }
 
-        private bool CanMatch(Vector2Int selectedCoords, Vector2Int targetCoords)
+        private bool CanSwapPiecesAtCoords(Vector2Int selectedCoords, Vector2Int targetCoords)
         {
             Piece selectedPiece = _pieces[selectedCoords.x, selectedCoords.y];
             Piece targetPiece = _pieces[targetCoords.x, targetCoords.y];
@@ -260,75 +252,77 @@ namespace Game.Board
                 return false;
             }
 
-            (int, int)[] primaryNeighbourOffsets =
+            Vector2Int[] primaryNeighbourOffsets =
             {
-                (0,2), (0,-2), (-2,0), (2,0), (-1,-1), (-1,1), (1,-1), (1,1)
+                new Vector2Int(0,2), new Vector2Int(0,-2), new Vector2Int(-2,0), new Vector2Int(2,0), new Vector2Int(-1,-1), new Vector2Int(-1,1), new Vector2Int(1,-1), new Vector2Int(1,1)
             };
 
-            (int, int)[][] secondaryOffsets =
+            Vector2Int[][] secondaryOffsets =
             {
-                new (int, int)[]{(0,3)},
-                new (int, int)[]{(0,-3)},
-                new (int, int)[]{(-3,0)},
-                new (int, int)[]{(3,0)},
-                new (int, int)[]{(-1,-2), (1,-1), (-1,1), (-2,-1)},
-                new (int, int)[]{(-1,2), (1,1), (-1,-1), (-2,1)},
-                new (int, int)[]{(1,-2), (1,1), (-1,-1), (2,-1)},
-                new (int, int)[]{(1,2), (1,-1), (-1,1), (2,1)},
+                new Vector2Int[]{ new Vector2Int(0,3)},
+                new Vector2Int[]{ new Vector2Int(0,-3)},
+                new Vector2Int[]{ new Vector2Int(-3,0)},
+                new Vector2Int[]{ new Vector2Int(3,0)},
+                new Vector2Int[]{ new Vector2Int(-1,-2), new Vector2Int(1,-1), new Vector2Int(-1,1), new Vector2Int(-2,-1)},
+                new Vector2Int[]{ new Vector2Int(-1,2), new Vector2Int(1,1), new Vector2Int(-1,-1), new Vector2Int(-2,1)},
+                new Vector2Int[]{ new Vector2Int(1,-2), new Vector2Int(1,1), new Vector2Int(-1,-1), new Vector2Int(2,-1)},
+                new Vector2Int[]{ new Vector2Int(1,2), new Vector2Int(1,-1), new Vector2Int(-1,1), new Vector2Int(2,1)},
             };
 
             PieceType type = _pieces[refCoords.x, refCoords.y].PieceType;
-            Colour colour = _pieces[refCoords.x, refCoords.y].Colour;
+            PieceColour colour = _pieces[refCoords.x, refCoords.y].Colour;
             return FindMatch(type, colour, refCoords, primaryNeighbourOffsets, secondaryOffsets, false, Vector2Int.zero);
         }
 
-        bool FindMatch(PieceType type, Colour colour, Vector2Int refCoords, Vector2Int excludedOffset)
+        bool FindMatch(PieceType type, PieceColour colour, Vector2Int refCoords, Vector2Int excludedOffset)
         {
-            (int, int)[] primaryNeighbourOffsets =
+            Vector2Int[] primaryNeighbourOffsets =
             {
-                (0,1), (0,-1), (-1,0), (1,0)
+                new Vector2Int(0,1), new Vector2Int(0,-1), new Vector2Int(-1,0), new Vector2Int(1,0)
             };
 
-            (int, int)[][] secondaryOffsets =
+            Vector2Int[][] secondaryOffsets =
             {
-                new (int, int)[]{(0, 2), (0,-1)},
-                new (int, int)[]{(0,-2), (0,1)},
-                new (int, int)[]{(-2,0), (1,0)},
-                new (int, int)[]{(2,0), (-1,0)},
+                new Vector2Int[]{ new Vector2Int(0, 2), new Vector2Int(0,-1)},
+                new Vector2Int[]{ new Vector2Int(0,-2), new Vector2Int(0,1)},
+                new Vector2Int[]{ new Vector2Int(-2,0), new Vector2Int(1,0)},
+                new Vector2Int[]{ new Vector2Int(2,0), new Vector2Int(-1,0)},
             };
 
             return FindMatch(type, colour, refCoords, primaryNeighbourOffsets, secondaryOffsets, true, excludedOffset);
         }
 
-        bool FindMatch(PieceType type, Colour colour, Vector2Int refCoords, (int, int)[] primaryNeighbourOffsets, (int, int)[][] secondaryOffsets, bool useExcludedOffset, Vector2Int excludedOffset)
+        bool FindMatch(PieceType type, PieceColour colour, Vector2Int refCoords, Vector2Int[] primaryNeighbourOffsets, Vector2Int[][] secondaryOffsets, bool useExcludedOffset, Vector2Int excludedOffset)
         {
-            (int row, int col) = (refCoords.x, refCoords.y);
             for (int i = 0; i < primaryNeighbourOffsets.Length; ++i)
             {
-                (int rowOffset, int colOffset) = primaryNeighbourOffsets[i];
+                Vector2Int primaryOffset = primaryNeighbourOffsets[i];
+                Vector2Int neighbourCoords = refCoords + primaryOffset;
 
-                if (!AreValidCoords(row + rowOffset, col + colOffset) || (useExcludedOffset && rowOffset == excludedOffset.x && colOffset == excludedOffset.y))
+                if ((useExcludedOffset && primaryOffset == excludedOffset) || !AreValidCoords(neighbourCoords))
                 {
                     continue;
                 }
-                Piece neighbour = _pieces[row + rowOffset, col + colOffset];
+                Piece neighbour = _pieces[neighbourCoords.x, neighbourCoords.y];
                 if (neighbour == null)
                 {
                     continue;
                 }
-                if (neighbour.PieceType == type && neighbour.Colour == colour)
+
+                if (neighbour.IsMatchingData(type, colour))
                 {
                     // Evaluate secondary offsets
-                    (int, int)[] testSecOffsets = secondaryOffsets[i];
+                    Vector2Int[] testSecOffsets = secondaryOffsets[i];
                     for (int j = 0; j < testSecOffsets.Length; ++j)
                     {
-                        (int secRowOffset, int secColOffset) = testSecOffsets[j];
-                        if (!AreValidCoords(row + secRowOffset, col + secColOffset) || (useExcludedOffset && secRowOffset == excludedOffset.x && secColOffset == excludedOffset.y))
+                        Vector2Int secondaryOffset = testSecOffsets[j];
+                        Vector2Int secondaryNeighbour = refCoords + secondaryOffset;
+                        if ((useExcludedOffset && secondaryOffset == excludedOffset) || !AreValidCoords(secondaryNeighbour))
                         {
                             continue;
                         }
-                        Piece secondaryNeighbour = _pieces[row + secRowOffset, col + secColOffset];
-                        if (secondaryNeighbour.PieceType == type && secondaryNeighbour.Colour == colour)
+                        Piece secondaryNeighbourPiece = _pieces[secondaryNeighbour.x, secondaryNeighbour.y];
+                        if (secondaryNeighbourPiece.IsMatchingData(type, colour))
                         {
                             return true;
                         }
@@ -345,14 +339,15 @@ namespace Game.Board
             _cols = _pieces.GetLength(1);
         }
 
-        private void ClearMatches(List<MatchInfo> matches)
-        {
-            throw new NotImplementedException();
-        }
-
         bool AreValidCoords(int row, int col)
         {
             return row >= 0 && row < _rows && col >= 0 && col < _cols;
+        }
+
+        bool AreValidCoords(Vector2Int coords)
+        {
+            (int row, int col) = (coords.x, coords.y);
+            return AreValidCoords(row, col);
         }
     }
 }

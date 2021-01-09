@@ -12,14 +12,15 @@ namespace Game.Board
         Match5,
         //Cross,
         //T,
-        //Square
+        //Square,
+        //L
     }
     public class MatchInfo
     {
         public MatchType MatchType { get; private set; }
         public List<Vector2Int> MatchCoords { get; private set; }
         public PieceType RefType { get; private set; }
-        public Colour RefColour { get; private set; }
+        public PieceColour RefColour { get; private set; }
 
         public static MatchInfo Create(Piece referencePiece, int rows, List<int> indexes)
         {
@@ -53,45 +54,6 @@ namespace Game.Board
             FindHorizontalMatches(pieces, rows, cols, totalMatches);
             FindVerticalMatches(pieces, rows, cols, totalMatches);
             return totalMatches;
-            //for (int i = 0; i < rows; ++i)
-            //{
-            //    int j = 0;
-            //    while (j < cols - 2)
-            //    {
-
-            //    }
-            //    // TODO: 
-            //    for (int j = 0; j < cols; ++j)
-            //    {
-            //        bool inBlob = blobs.Exists(
-            //            testBlob => testBlob.Exists(coords => coords.x == i && coords.y == j)
-            //        );
-            //        if (inBlob) continue;
-
-            //        List<Vector2Int> blob = new List<Vector2Int>();
-            //        blob.Add(new Vector2Int(i, j));
-
-            //        Piece reference = pieces[i, j];
-            //        if (reference == null) continue;
-
-            //        if (i + 1 < rows)
-            //        {
-            //            TestBlob(pieces, i + 1, j, rows, cols, reference, blob, blobs);
-            //        }
-
-            //        if (j + 1 < cols)
-            //        {
-            //            TestBlob(pieces, i, j + 1, rows, cols, reference, blob, blobs);
-            //        }
-
-            //        // TODO: Analyze blob to get the match type
-            //        if (blob.Count >= 3)
-            //        {
-            //            blobs.Add(blob);
-            //        }
-            //    }
-            //}
-            //return new List<MatchInfo>();
         }
 
         private static void FindVerticalMatches(Piece[,] pieces, int rows, int cols, List<MatchInfo> totalMatches)
@@ -113,7 +75,7 @@ namespace Game.Board
                     while (k < rows)
                     {
                         Piece testPiece = pieces[k, i];
-                        if (testPiece != null && testPiece.PieceType == refPiece.PieceType && testPiece.Colour == refPiece.Colour)
+                        if (Piece.CanPiecesMatch(testPiece, refPiece))
                         {
                             candidateMatchIndices.Add(k * rows + i);
                             k++;
@@ -151,7 +113,7 @@ namespace Game.Board
                     while (k < cols)
                     {
                         Piece testPiece = pieces[i, k];
-                        if (testPiece != null && testPiece.PieceType == refPiece.PieceType && testPiece.Colour == refPiece.Colour)
+                        if (Piece.CanPiecesMatch(testPiece, refPiece))
                         {
                             candidateMatchIndices.Add(i * rows + k);
                             k++;
@@ -168,31 +130,6 @@ namespace Game.Board
                     }
                 }
             }
-        }
-
-        static void TestBlob(Piece[,] pieces, int i, int j, int rows, int cols, Piece pieceToMatch, List<Vector2Int> blob, List<List<Vector2Int>> blobs)
-        {
-            bool inBlob = blobs.Exists(testBlob => testBlob.Exists(coords => coords.x == i && coords.y == j)) || blob.Exists(coords => coords.x == i && coords.y == j);
-            if (inBlob) return;
-            Piece referencePiece = pieces[i, j];
-            if (referencePiece == null || referencePiece.PieceType != pieceToMatch.PieceType || referencePiece.Colour != pieceToMatch.Colour) return;
-
-            blob.Add(new Vector2Int(i, j));
-
-            if (i + 1 < rows)
-            {
-                TestBlob(pieces, i + 1, j, rows, cols, referencePiece, blob, blobs);
-            }
-
-            if (j + 1 < cols)
-            {
-                TestBlob(pieces, i, j + 1, rows, cols, referencePiece, blob, blobs);
-            }
-        }
-
-        public static List<MatchInfo> FindPotentialMatches(Piece[,] pieces)
-        {
-            return new List<MatchInfo>();
         }
     }
 }

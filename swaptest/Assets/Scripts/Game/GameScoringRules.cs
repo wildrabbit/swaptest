@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
-using System.Collections;
 using System;
 using System.Collections.Generic;
+using UnityEngine.Serialization;
 
 namespace Game
 {
@@ -18,29 +18,37 @@ namespace Game
         [SerializeField] int _match3BaseScore = 50;
         [SerializeField] int _match4BaseScore = 100;
         [SerializeField] int _match5BaseScore = 200;
-        [SerializeField] List<ChainPair> _chains = new List<ChainPair>();
-        bool _sorted = false;
+        [SerializeField, FormerlySerializedAs("_chains")] List<ChainPair> _matchChainMultipliers = new List<ChainPair>();
 
         public int Match3Score => _match3BaseScore;
         public int Match4Score => _match4BaseScore;
         public int Match5Score => _match5BaseScore;
 
+        bool _sortedMultipliers = false;
+
         public int GetMultiplierForStep(int step)
         {
-            if(!_sorted)
+            int numMultipliers = _matchChainMultipliers?.Count ?? 0;
+            if (numMultipliers == 0)
             {
-                _chains.Sort((pair1, pair2) => pair1.ChainStep.CompareTo(pair2.ChainStep));
-                _sorted = true;
+                return 1;
             }
 
-            for(int i = 0; i < _chains.Count; ++i)
+            if (!_sortedMultipliers)
             {
-                if(step == _chains[i].ChainStep)
+                // Ensure the list will always be sorted regardless of the inspector.
+                _matchChainMultipliers.Sort((pair1, pair2) => pair1.ChainStep.CompareTo(pair2.ChainStep));
+                _sortedMultipliers = true;
+            }
+
+            for(int i = 0; i < numMultipliers; ++i)
+            {
+                if(step == _matchChainMultipliers[i].ChainStep)
                 {
-                    return _chains[i].Multiplier;
+                    return _matchChainMultipliers[i].Multiplier;
                 }
             }
-            return _chains[_chains.Count - 1].Multiplier;
+            return _matchChainMultipliers[numMultipliers - 1].Multiplier;
         }
     }
 }

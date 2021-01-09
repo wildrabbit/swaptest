@@ -58,6 +58,7 @@ namespace Game.UI
             if (_reshuffleRoutine != null)
             {
                 StopCoroutine(_reshuffleRoutine);
+                _reshuffleRoutine = null;
                 _reshufflingFeedback.gameObject.SetActive(false);
             }
         }
@@ -65,9 +66,10 @@ namespace Game.UI
         IEnumerator ReshuffleFeedback()
         {
             _reshufflingFeedback.gameObject.SetActive(true);
-            // TODO: Add visual improvs (tween scale, alpha, etc)
+            // Polish: Add visual improvs (tween scale, alpha, etc)
             yield return _reshuffleDelay;
             _reshufflingFeedback.gameObject.SetActive(false);
+            _reshuffleRoutine = null;
         }
 
         void OnTimerChanged(float elapsed, float totalTime)

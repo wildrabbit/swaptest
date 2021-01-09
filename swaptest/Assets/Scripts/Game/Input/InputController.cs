@@ -1,8 +1,7 @@
-﻿using UnityEngine;
+﻿using Game.Events;
 using Game.View;
+using UnityEngine;
 using UInput = UnityEngine.Input;
-using Game.Events;
-using System;
 
 namespace Game.Input
 {
@@ -57,8 +56,6 @@ namespace Game.Input
             }
         }
 
-
-
         void SubscribeToEvents()
         {
             var gameplayEvents = GameEvents.Instance.Gameplay;
@@ -96,23 +93,23 @@ namespace Game.Input
             SetInputEnabled(false);
         }
 
-        private void OnSwapAttemptStarted()
+        void OnSwapAttemptStarted()
         {
             CancelSelection();
             SetInputEnabled(false);
         }
 
-        private void OnFailedSwapAttempt()
+        void OnFailedSwapAttempt()
         {
             SetInputEnabled(true);
         }
 
-        private void OnBoardUpdateCompleted()
+        void OnBoardUpdateCompleted()
         {
             SetInputEnabled(true);
         }
 
-        private void OnBoardUpdateStarted()
+        void OnBoardUpdateStarted()
         {
             SetInputEnabled(false);
         }
@@ -165,7 +162,6 @@ namespace Game.Input
 
         void SelectPiece(PieceView piece)
         {
-            //Debug.Log($"Selected piece @ {piece.Coords}");
             if (_selectedPiece != piece)
             {
                 CancelSelection();
@@ -184,8 +180,16 @@ namespace Game.Input
         }
 
 
-        public void SetInputEnabled(bool enabled)
+        void SetInputEnabled(bool enabled)
         {
+#if UNITY_EDITOR
+            // TODO: REMOVE ME. Bug tracking code.
+            var gameController = FindObjectOfType<GameController>();
+            if (enabled && gameController.Finished)
+            {
+                Debug.LogError("RESETTING INPUT AFTER GAME IS FINISHED!!");
+            }
+#endif
             _enabled = enabled;
         }
     }

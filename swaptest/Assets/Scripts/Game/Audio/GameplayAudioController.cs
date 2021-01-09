@@ -27,7 +27,13 @@ namespace Game.Audio
             SubscribeToEvents();
         }
 
-        private void SubscribeToEvents()
+        protected override void OnDestroy()
+        {
+            base.OnDestroy();
+            UnsubscribeFromEvents();
+        }
+
+        void SubscribeToEvents()
         {
             var gameEvents = GameEvents.Instance;
             var viewEvents = gameEvents.View;
@@ -44,13 +50,7 @@ namespace Game.Audio
             gameplayEvents.TimerExpired += OnTimerExpired;
         }
 
-        protected override void OnDestroy()
-        {
-            base.OnDestroy();
-            UnsubscribeFromEvents();
-        }
-
-        private void UnsubscribeFromEvents()
+        void UnsubscribeFromEvents()
         {
             var gameEvents = GameEvents.Instance;
             var viewEvents = gameEvents.View;
@@ -102,6 +102,7 @@ namespace Game.Audio
 
         void OnPiecesExploded(List<PieceView> pieces)
         {
+            // Polish: Pass around chain index so we can use sound variations
             _audioSource.PlayOneShot(_matchExplosion);
         }
 

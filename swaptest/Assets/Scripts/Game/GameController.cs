@@ -24,9 +24,6 @@ namespace Game
         string _lastSeed;
         bool _notifiedRunningOut = false;
         private GameEvents _gameEvents;
-
-        //Timer _debugTimer;
-
         public float RemainingTime => _totalTime - _elapsed;
         public bool Running => _running;
         public bool Finished => _finished;
@@ -92,31 +89,35 @@ namespace Game
 
         void OnMatchesFound(List<MatchInfo> matches, int chainStep)
         {
-            int delta = 0;
-            foreach(var match in matches)
+            int currentStepScore = 0;
+            int chainMultiplier = _scoringRules.GetMultiplierForStep(chainStep);
+            foreach (var match in matches)
             {
+                int matchScore = 0;
                 switch(match.MatchType)
                 {
                     case MatchType.Match3:
                     {
-                        delta += _scoringRules.Match3Score;
+                        matchScore = _scoringRules.Match3Score;
                         break;
                     }
                     case MatchType.Match4:
                     {
-                        delta += _scoringRules.Match4Score;
+                        matchScore = _scoringRules.Match4Score;
                         break;
                     }
                     case MatchType.Match5:
                     {
-                        delta += _scoringRules.Match5Score;
+                        matchScore = _scoringRules.Match5Score;
                         break;
                     }
                 }
-            }
-            delta *= _scoringRules.GetMultiplierForStep(chainStep);
-            _score += delta;
-            _gameEvents.Gameplay.DispatchScoreChanged(delta, _score);
+                matchScore *= chainMultiplier;
+                _gameEvents.Gameplay.DispatchMatchProcessed(match, matchScore, chainMultiplier);
+                currentStepScore += matchScore;
+            }            
+            _score += currentStepScore;
+            _gameEvents.Gameplay.DispatchScoreChanged(currentStepScore, _score);
         }
 
         public void StartGame(bool useLastSeed = false)
@@ -150,28 +151,7 @@ namespace Game
             _notifiedRunningOut = false;
             _gameEvents.Gameplay.DispatchGameStarted(_score, _elapsed, _totalTime);
             _boardController.BeginBoardUpdatePhase();
-            //StartTimer();
         }
-
-        //void StartTimer()
-        //{
-        //    _debugTimer = new Timer(1000);
-        //    _debugTimer.Elapsed += OnTimer;
-        //    _debugTimer.AutoReset = true;
-        //    _debugTimer.Enabled = true;
-        //}
-
-        //void StopTimer()
-        //{
-        //    _debugTimer.Elapsed -= OnTimer;
-        //    _debugTimer.Stop();
-        //    _debugTimer.Enabled = false;
-        //}
-
-        //void OnTimer(object sender, ElapsedEventArgs eventArgs)
-        //{
-        //    Debug.Log($"Remaining: {RemainingTime}");
-        //}
     }
 
 }

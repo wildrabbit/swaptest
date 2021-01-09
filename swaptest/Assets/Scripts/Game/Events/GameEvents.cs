@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using System.Collections;
 using System;
 using System.Collections.Generic;
 using Game.Board;
@@ -15,6 +14,7 @@ namespace Game.Events
         public event Action<float, float> TimerChanged;
         public event Action TimerExpired;
         public event Action TimerRunningOut;
+        public event Action<MatchInfo, int, int> MatchProcessed;
 
         public void DispatchGameStarted(int score, float elapsed, float totalTime)
         {
@@ -40,7 +40,13 @@ namespace Game.Events
         {
             TimerRunningOut?.Invoke();
         }
+
+        public void DispatchMatchProcessed(MatchInfo match, int score, int chainStep)
+        {
+            MatchProcessed?.Invoke(match, score, chainStep);
+        }
     }
+
     public class UIEvents
     {
         public event Action<bool> StartGameRequested;

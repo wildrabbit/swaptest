@@ -1,8 +1,6 @@
 ﻿using Game.Board;
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Text;
 using UnityEngine;
 
 namespace Game.Levels
@@ -51,7 +49,7 @@ namespace Game.Levels
                         Debug.LogError($"Invalid colour for data @ coords {i},{j}");
                         pieces[i, j] = null;
                     }
-                    pieces[i, j] = new Piece(PieceType.Normal, (Colour)colourInt);
+                    pieces[i, j] = new Piece(PieceType.Normal, (PieceColour)colourInt);
                 }
             }
             return pieces;

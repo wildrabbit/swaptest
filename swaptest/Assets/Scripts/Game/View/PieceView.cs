@@ -8,13 +8,13 @@ namespace Game.View
     public class PieceView : MonoBehaviour
     {
         [SerializeField] PieceType _pieceType;
-        [SerializeField] Colour _colour;
+        [SerializeField] PieceColour _colour;
         [SerializeField] GameObject _selectionOverlay;
         [SerializeField] Animator _animator;
         [SerializeField] GameObject _pieceExplosionPrefab;
 
         public PieceType PieceType => _pieceType;
-        public Colour Colour => _colour;
+        public PieceColour Colour => _colour;
         public Vector2Int Coords => _coords;
 
         Vector2Int _coords;
@@ -27,6 +27,7 @@ namespace Game.View
         public void UpdateCoords(Vector2Int coords)
         {
             _coords = coords;
+            name = $"Piece {_coords}";
         }
 
         public void Init(Vector2Int coords, Vector3 position, bool startEnabled = true)
@@ -34,6 +35,7 @@ namespace Game.View
             _coords = coords;
             transform.localPosition = position;
             gameObject.SetActive(startEnabled);
+            name = $"Piece {_coords}";
         }
 
         public bool IsAdjacentTo(PieceView selectedPiece)
