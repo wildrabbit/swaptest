@@ -1141,7 +1141,11 @@ MonoBehaviour:
   _sfxOn: 1
   _swapStart: {fileID: 8300000, guid: fe0b1f9aeb45b41b089175aeeabd5d95, type: 3}
   _swapFailed: {fileID: 8300000, guid: d46323e22e74e46baa241cbf48c85671, type: 3}
-  _matchExplosion: {fileID: 8300000, guid: 52320e590bf774734a288886eba557ba, type: 3}
+  _matchExplosionVariations:
+  - {fileID: 8300000, guid: 52320e590bf774734a288886eba557ba, type: 3}
+  - {fileID: 8300000, guid: 373f5d6064dbae748aa6f911f5e22cb0, type: 3}
+  - {fileID: 8300000, guid: 9e35912612b8c5049b9ee78d3e5e8ca8, type: 3}
+  - {fileID: 8300000, guid: 94102bd993836054c88aa831610a40b0, type: 3}
   _dropCompleted: {fileID: 8300000, guid: 130a177e727814a2ea78a886ab72213d, type: 3}
   _reshuffling: {fileID: 8300000, guid: 5fdb13d3756c84fecac96f5a2d124370, type: 3}
   _timerRunning: {fileID: 8300000, guid: c5e2a73ad4706440f93bf05df0b465fe, type: 3}
