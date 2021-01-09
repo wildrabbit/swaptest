@@ -800,6 +800,11 @@ MonoBehaviour:
   _reshuffleVisibleDuration: 0.8
   _gameOverScreenPrefab: {fileID: 5035504959777282673, guid: a417ee28de4beb3439c747d733ad755b,
     type: 3}
+  _timeRunningOutColour: {r: 1, g: 0.1462264, b: 0.1462264, a: 1}
+  _timeRunningOutStyle: 1
+  _shakeSpeed: 40
+  _shakeIntensity: 3
+  _shakeDuration: 0.8
 --- !u!1 &702052364
 GameObject:
   m_ObjectHideFlags: 0
