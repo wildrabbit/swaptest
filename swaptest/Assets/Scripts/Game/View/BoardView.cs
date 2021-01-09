@@ -22,6 +22,8 @@ namespace Game.View
         [SerializeField] float _reshuffleDelayDuration = 0.4f;
         [SerializeField] AnimationCurve _swapAnimationCurve;
 
+        public bool IsSwapping => _swapping;
+
         Rect _playableArea;
         int _rows;
         int _cols;
@@ -35,6 +37,7 @@ namespace Game.View
         WaitForSeconds _reshuffleDelay;
 
         ViewEvents _viewEvents;
+        bool _swapping = false;
 
         void Start()
         {
@@ -80,6 +83,8 @@ namespace Game.View
             float totalWidth = _cols * _cellWidth;
             float totalHeight = _rows * _cellHeight;
             _playableArea = new Rect(centerPos.x - 0.5f * totalWidth, centerPos.y - 0.5f * totalHeight, totalWidth, totalHeight);
+
+            _swapping = false;
         }
 
         public IEnumerator ExplodePieces(IEnumerable<Vector2Int> matchingCoordinates)
@@ -186,6 +191,7 @@ namespace Game.View
         public void AttemptSwap(PieceView selectedPiece, PieceView swapCandidatePiece)
         {
             //Debug.Log($"Attempting swap between @ {selectedPiece.Coords} and {swapCandidatePiece.Coords} ");
+            _swapping = true;
             _viewEvents.DispatchSwapAttemptStarted();
             StartCoroutine(TrySwapPieces(selectedPiece, swapCandidatePiece));
         }
@@ -222,6 +228,7 @@ namespace Game.View
             {
                 targetPiece.UpdateCoords(selected);
             }
+            _swapping = false;
         }
 
         public void OnFailedSwapAttempt(Vector2Int selected, Vector2Int candidate)
@@ -236,6 +243,9 @@ namespace Game.View
             TryConvertCoordsToBoardPos(selected, out var selectedPos);
             TryConvertCoordsToBoardPos(candidate, out var candidatePos);
 
+            selectedPiece.PlayNay();
+            candidatePiece.PlayNay();
+            yield return new WaitForSeconds(0.5f);
             float duration = 0;
             float t = 0;
             while (duration < _swapDuration)
@@ -247,6 +257,7 @@ namespace Game.View
                 duration += Time.deltaTime;
             }
             _viewEvents.DispatchFailedSwapAttempt();
+            _swapping = false;
         }
 
         public bool PositionInsideBounds(Vector3 pos)

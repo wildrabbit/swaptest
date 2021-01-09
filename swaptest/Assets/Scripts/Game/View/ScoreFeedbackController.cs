@@ -32,8 +32,9 @@ namespace Game.View
             foreach(var instance in _currentInstances)
             {
                 instance.Kill();
-                OnKilled(instance);
+                GameObject.Destroy(instance.gameObject);
             }
+            _currentInstances.Clear();
         }
 
         void OnMatchProcessed(MatchInfo matchInfo, int score, int multiplier)

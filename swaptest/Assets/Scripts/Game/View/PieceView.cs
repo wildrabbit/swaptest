@@ -19,9 +19,25 @@ namespace Game.View
 
         Vector2Int _coords;
 
+        int _idleHash;
+        int _happyHash;
+        int _happierHash;
+        int _spawnHash;
+        int _nayHash;
+
         void Awake()
         {
+            HashAnimationParameters();            
             _selectionOverlay.SetActive(false);
+        }
+
+        void HashAnimationParameters()
+        {
+            _idleHash = Animator.StringToHash("idle");
+            _happyHash = Animator.StringToHash("happy");
+            _happierHash = Animator.StringToHash("happier");
+            _nayHash = Animator.StringToHash("nay");
+            _spawnHash = Animator.StringToHash("spawn");
         }
 
         public void UpdateCoords(Vector2Int coords)
@@ -48,11 +64,13 @@ namespace Game.View
         public void Select()
         {
             _selectionOverlay.SetActive(true);
+            PlayHappy();
         }
 
         public void Deselect()
         {
             _selectionOverlay.SetActive(false);
+            PlayIdle();
         }
 
         public IEnumerator Explode()
@@ -79,14 +97,14 @@ namespace Game.View
         public IEnumerator Appear(float duration)
         {
             gameObject.SetActive(true);
-            var time = 0.0f;
-            while (time < duration)
-            {
-                transform.localScale = Vector3.Lerp(Vector3.zero, Vector3.one, time / duration);
-                yield return null;
-                time += Time.deltaTime;
-            }
-
+            PlaySpawn();
+            yield return new WaitForSeconds(duration);
+            //while (time < duration)
+            //{
+            //    transform.localScale = Vector3.Lerp(Vector3.zero, Vector3.one, time / duration);
+            //    yield return null;
+            //    time += Time.deltaTime;
+            //}
         }
 
         public IEnumerator Drop(Vector2Int dropCoords, Vector3 newPos, float duration)
@@ -100,6 +118,26 @@ namespace Game.View
                 time += Time.deltaTime;
             }
             _coords = dropCoords;
+        }
+
+        public void PlayHappy()
+        {
+            _animator.SetTrigger(_happyHash);
+        }
+
+        public void PlayNay()
+        {
+            _animator.SetTrigger(_nayHash);
+        }
+
+        void PlayIdle()
+        {
+            _animator.SetTrigger(_idleHash);
+        }
+
+        private void PlaySpawn()
+        {
+            _animator.SetTrigger(_spawnHash);
         }
     }
 }

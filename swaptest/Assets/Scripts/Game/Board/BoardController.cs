@@ -33,7 +33,7 @@ namespace Game.Board
         public int Cols => _cols;
         public int Rows => _rows;
         public BoardView View => _view;
-        public bool IsStable => _currentPhase == BoardUpdatePhase.Stable;
+        public bool IsStable => _currentPhase == BoardUpdatePhase.Stable && !_view.IsSwapping;
 
         ViewEvents _viewEvents;
         BoardEvents _boardEvents;

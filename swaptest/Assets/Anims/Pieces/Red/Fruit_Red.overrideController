@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!221 &22100000
+AnimatorOverrideController:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Fruit_Red
+  m_Controller: {fileID: 9100000, guid: 99baa623a127cce49865ebdce7dcbb52, type: 2}
+  m_Clips:
+  - m_OriginalClip: {fileID: 7400000, guid: 114c8e7383effe44a82d42d926e9caa1, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: 146a706c0a89b5147ae83b787de8cde5, type: 2}
+  - m_OriginalClip: {fileID: 7400000, guid: 232e547f214369f48afaba16d8a9f170, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: 49eb0da6f13d6f04bb9fdd04952f7ac4, type: 2}
+  - m_OriginalClip: {fileID: 7400000, guid: 05e39588c77640646b4b2cb8fa7cec3c, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: 0b1f23775ba994242a2f3b185f564001, type: 2}
+  - m_OriginalClip: {fileID: 7400000, guid: a6da869037b0e47438efb47ff26fec72, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: 6bc48cbfabf5d8e409023730eeb336bd, type: 2}
+  - m_OriginalClip: {fileID: 7400000, guid: 1a7fba670c276df4bb2deab8df1ccf48, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: 1cb519ac01df736429c9f3413393797b, type: 2}

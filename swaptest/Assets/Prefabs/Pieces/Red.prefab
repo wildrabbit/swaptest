@@ -59,6 +59,11 @@ PrefabInstance:
       propertyPath: m_Enabled
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 9500292, guid: 58194b4a856312545a557025edfb6937, type: 3}
+      propertyPath: m_Controller
+      value: 
+      objectReference: {fileID: 22100000, guid: 76bcd79a4cfd88041b0d0f807c7cf5b3,
+        type: 2}
     - target: {fileID: 21278846, guid: 58194b4a856312545a557025edfb6937, type: 3}
       propertyPath: m_SortingLayer
       value: 3

@@ -182,14 +182,6 @@ namespace Game.Input
 
         void SetInputEnabled(bool enabled)
         {
-#if UNITY_EDITOR
-            // TODO: REMOVE ME. Bug tracking code.
-            var gameController = FindObjectOfType<GameController>();
-            if (enabled && gameController.Finished)
-            {
-                Debug.LogError("RESETTING INPUT AFTER GAME IS FINISHED!!");
-            }
-#endif
             _enabled = enabled;
         }
     }

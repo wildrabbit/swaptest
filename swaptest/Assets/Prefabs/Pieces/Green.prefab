@@ -155,6 +155,11 @@ PrefabInstance:
       propertyPath: m_Enabled
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 9581780, guid: 28dd42fca7a476d478e583d0b8d8e192, type: 3}
+      propertyPath: m_Controller
+      value: 
+      objectReference: {fileID: 22100000, guid: c022b82ef1e98eb45b9f1714e139cea4,
+        type: 2}
     - target: {fileID: 21220900, guid: 28dd42fca7a476d478e583d0b8d8e192, type: 3}
       propertyPath: m_SortingLayer
       value: 3
