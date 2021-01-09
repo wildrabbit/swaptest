@@ -9,6 +9,7 @@ namespace Game.View
 {
     public class BoardView: MonoBehaviour
     {
+        [SerializeField] GridView _gridView;
         [SerializeField] float _cellWidth = 1.0f;
         [SerializeField] float _cellHeight = 1.0f;
         [SerializeField] List<PieceView> _viewPrefabs;
@@ -72,6 +73,8 @@ namespace Game.View
                     }
                 }
             }
+
+            _gridView.Init(_rows, _cols, new Vector3(-_boardOffsetX, -_boardOffsetY, 0.0f));
 
             Vector3 centerPos = _piecesRoot.transform.position;
             float totalWidth = _cols * _cellWidth;
