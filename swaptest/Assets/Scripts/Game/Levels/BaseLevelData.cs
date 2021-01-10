@@ -3,6 +3,9 @@ using UnityEngine;
 
 namespace Game.Levels
 {
+    /// <summary>
+    /// Base class for level generation data
+    /// </summary>
    public abstract class BaseLevelData: ScriptableObject
    {
         [Header("Common level data")]

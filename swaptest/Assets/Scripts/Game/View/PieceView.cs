@@ -1,11 +1,14 @@
 ﻿using Game.Board;
-using Game.Utils;
 using System;
 using System.Collections;
 using UnityEngine;
+using Utils;
 
 namespace Game.View
 {
+    /// <summary>
+    /// Individual piece view class.
+    /// </summary>
     public class PieceView : MonoBehaviour
     {
         [SerializeField] PieceType _pieceType;
@@ -114,7 +117,7 @@ namespace Game.View
             _animator.SetTrigger(_happyHash);
         }
 
-        public void PlayNay()
+        public void PlayInvalidSwapAnimation()
         {
             _animator.SetTrigger(_nayHash);
         }

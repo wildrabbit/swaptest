@@ -5,6 +5,9 @@ using UnityEngine;
 
 namespace Game.View
 {
+    /// <summary>
+    /// Score visual feedback spawned in the board when matches are done.
+    /// </summary>
     public class ScoreFeedback : MonoBehaviour
     {
 

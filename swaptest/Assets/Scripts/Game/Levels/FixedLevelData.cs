@@ -5,6 +5,9 @@ using UnityEngine;
 
 namespace Game.Levels
 {
+    /// <summary>
+    /// Generate a level given a text-based layout
+    /// </summary>
     [CreateAssetMenu(fileName = "FixedLevel", menuName ="Match3/Create Fixed Level Data")]
     public class FixedLevelData: BaseLevelData
     {

@@ -6,6 +6,9 @@ using UnityEngine;
 
 namespace Game.Events
 {
+    /// <summary>
+    /// Core gameplay events
+    /// </summary>
     public class GameplayEvents
     {
         public event Action<int, int, float, float> GameStarted;
@@ -71,6 +74,9 @@ namespace Game.Events
         }
     }
 
+    /// <summary>
+    /// UI events (mostly buttons)
+    /// </summary>
     public class UIEvents
     {
         public event Action<bool> StartGameRequested;
@@ -105,6 +111,9 @@ namespace Game.Events
         }
     }
 
+    /// <summary>
+    /// Board events
+    /// </summary>
     public class BoardEvents
     {
         public event Action<List<MatchInfo>, int> MatchesFound;
@@ -120,6 +129,9 @@ namespace Game.Events
         }
     }
 
+    /// <summary>
+    /// Board view-related events
+    /// </summary>
     public class ViewEvents
     {
         public event Action BoardUpdateCompleted;
@@ -172,6 +184,9 @@ namespace Game.Events
         }
     }
 
+    /// <summary>
+    /// This class is used as an access point to all game events, classified by area (UI, View, ...)
+    /// </summary>
     public class GameEvents
     {
         public GameplayEvents Gameplay = new GameplayEvents();

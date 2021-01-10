@@ -3,6 +3,9 @@ using UnityEngine;
 
 namespace Game.Levels
 {
+    /// <summary>
+    /// Generate a level with randomised pieces given the board dimensions.
+    /// </summary>
     [CreateAssetMenu(fileName = "RandomizedLevel", menuName = "Match3/Create Randomized Level Data")]
     public class RandomizedLevelData : BaseLevelData
     {

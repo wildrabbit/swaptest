@@ -5,6 +5,9 @@ using UInput = UnityEngine.Input;
 
 namespace Game.Input
 {
+    /// <summary>
+    /// This class tracks input events and communicates with the view in order to detect taps and swipes
+    /// </summary>
     public class InputController : MonoBehaviour
     {
         const int kLeftMouseID = 0;
@@ -53,6 +56,52 @@ namespace Game.Input
             {
                 var touch = UInput.GetTouch(0);
                 HandleTouch(0, touch.position, touch.phase);
+            }
+        }
+
+        void HandleTouch(int touchID, Vector2 screenPos, TouchPhase phase)
+        {
+            var worldPos = _mainCamera.ScreenToWorldPoint(screenPos);
+            bool insideBounds = _boardView.PositionInsideBounds(worldPos);
+
+            if (!insideBounds && _selectedPiece != null)
+            {
+                CancelSelection();
+            }
+
+            switch (phase)
+            {
+                case TouchPhase.Began:
+                {
+                    if (_boardView.TryGetPieceView(worldPos, out var piece))
+                    {
+                        if (_selectedPiece == null || !piece.IsAdjacentTo(_selectedPiece))
+                        {
+                            SelectPiece(piece);
+                        }
+                        else
+                        {
+                            _boardView.AttemptSwap(_selectedPiece, piece);
+                        }
+                    }
+                    break;
+                }
+                case TouchPhase.Ended:
+                case TouchPhase.Moved:
+                {
+                    if (_selectedPiece != null && _boardView.TryGetPieceView(worldPos, out var swapCandidatePiece) && swapCandidatePiece != _selectedPiece && swapCandidatePiece.IsAdjacentTo(_selectedPiece))
+                    {
+                        _boardView.AttemptSwap(_selectedPiece, swapCandidatePiece);
+                    }
+                    break;
+                }
+                case TouchPhase.Canceled:
+                {
+                    Debug.Log("Cancel!");
+
+                    CancelSelection();
+                    break;
+                }
             }
         }
 
@@ -114,52 +163,6 @@ namespace Game.Input
             SetInputEnabled(false);
         }
 
-        void HandleTouch(int touchID, Vector2 screenPos, TouchPhase phase)
-        {
-            var worldPos = _mainCamera.ScreenToWorldPoint(screenPos);
-            bool insideBounds = _boardView.PositionInsideBounds(worldPos);
-
-            if (!insideBounds && _selectedPiece != null)
-            {
-                CancelSelection();
-            }
-
-            switch (phase)
-            {
-                case TouchPhase.Began:
-                    {
-                        if (_boardView.TryGetPieceView(worldPos, out var piece))
-                        {
-                            if (_selectedPiece == null || !piece.IsAdjacentTo(_selectedPiece))
-                            {
-                                SelectPiece(piece);
-                            }
-                            else
-                            {
-                                _boardView.AttemptSwap(_selectedPiece, piece);
-                            }
-                        }
-                        break;
-                    }
-                case TouchPhase.Ended:
-                case TouchPhase.Moved:
-                    {
-                        if (_selectedPiece != null && _boardView.TryGetPieceView(worldPos, out var swapCandidatePiece) && swapCandidatePiece != _selectedPiece && swapCandidatePiece.IsAdjacentTo(_selectedPiece))
-                        {
-                            _boardView.AttemptSwap(_selectedPiece, swapCandidatePiece);
-                        }
-                        break;
-                    }
-                case TouchPhase.Canceled:
-                    {
-                        Debug.Log("Cancel!");
-
-                        CancelSelection();
-                        break;
-                    }
-            }
-        }
-
         void SelectPiece(PieceView piece)
         {
             if (_selectedPiece != piece)
@@ -178,7 +181,6 @@ namespace Game.Input
                 _selectedPiece = null;
             }
         }
-
 
         void SetInputEnabled(bool enabled)
         {

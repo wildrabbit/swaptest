@@ -3,6 +3,9 @@ using UnityEngine.Tilemaps;
 
 namespace Game.View
 {
+    /// <summary>
+    ///  Initialize grid tilemap.
+    /// </summary>
     public class GridView: MonoBehaviour
     {
         [SerializeField] Tilemap _tilemap;

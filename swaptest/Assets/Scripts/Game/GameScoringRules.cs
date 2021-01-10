@@ -5,6 +5,10 @@ using UnityEngine.Serialization;
 
 namespace Game
 {
+    /// <summary>
+    /// This class keeps track of score depending on the match performed,
+    /// also accounting for bonus multipliers depending on match chains.
+    /// </summary>
     [Serializable]
     public class GameScoringRules
     {

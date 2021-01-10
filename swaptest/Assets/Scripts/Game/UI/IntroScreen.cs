@@ -3,12 +3,14 @@ using UnityEngine;
 
 namespace Game.UI
 {
+    /// <summary>
+    /// Intro screen control class
+    /// </summary>
     public class IntroScreen : MonoBehaviour
     {
         [SerializeField] string _gameScene;
         [SerializeField] GameObject _exitButton;
 
-        // Start is called before the first frame update
         void Start()
         {
 #if UNITY_STANDALONE

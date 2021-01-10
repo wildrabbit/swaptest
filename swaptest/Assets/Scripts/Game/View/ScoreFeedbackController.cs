@@ -5,12 +5,14 @@ using System.Collections.Generic;
 
 namespace Game.View
 {
+    /// <summary>
+    /// Match tracking class used to spawn score visual feedback
+    /// </summary>
     public class ScoreFeedbackController : MonoBehaviour
     {
         [SerializeField] ScoreFeedback _scoreTextPrefab;
         [SerializeField] BoardView _boardView;
 
-        // TODO: Pool instances
         List<ScoreFeedback> _currentInstances;
 
         void Awake()
@@ -38,6 +40,7 @@ namespace Game.View
 
         void OnMatchProcessed(MatchInfo matchInfo, int score, int multiplier)
         {
+            // TODO: Consider pooling!
             ScoreFeedback instance = Instantiate(_scoreTextPrefab);
             instance.transform.position = GetMatchPosition(matchInfo);
             instance.Init(score, multiplier, OnKilled);

@@ -14,6 +14,10 @@ namespace Game.Board
         //Square,
         //L
     }
+
+    /// <summary>
+    /// Information about a match (shape, type of pieces and coordinates involved,..)
+    /// </summary>
     public class MatchInfo
     {
         public MatchType MatchType { get; private set; }
@@ -43,6 +47,9 @@ namespace Game.Board
         }
     }
 
+    /// <summary>
+    /// This class offers logic to detect matches in a table of Piece instances.
+    /// </summary>
     public static class MatchFinder
     {
         public static List<MatchInfo> FindMatches(Piece[,] pieces)

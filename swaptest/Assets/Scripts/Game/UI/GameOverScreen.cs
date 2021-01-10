@@ -4,6 +4,11 @@ using UnityEngine;
 
 namespace Game.UI
 {
+    /// <summary>
+    /// Screen (more of a popup) displayed when the timer runs out
+    /// and offers logic to keep playing a new game or go back to 
+    /// the menu screen
+    /// </summary>
     public class GameOverScreen : MonoBehaviour
     {
         const string kGameOverTextPattern = "You scored {0} points. \nPlay again to beat the high score!";

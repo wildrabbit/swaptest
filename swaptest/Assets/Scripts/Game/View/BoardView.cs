@@ -4,10 +4,16 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Utils;
 
 
 namespace Game.View
 {
+    /// <summary>
+    /// This class keeps track of the overall board's visuals.
+    /// It handles generation of piece views and the grid, and also
+    /// offers functionality to try swapping two pieces.
+    /// </summary>
     public class BoardView: MonoBehaviour
     {
         [SerializeField] GridView _gridView;
@@ -137,6 +143,7 @@ namespace Game.View
                 StartCoroutine(piece.Appear(_reshuffleDelayDuration * 0.5f));
             }
         }
+
         public IEnumerator Refill(List<(Piece, Vector2Int)> newPieces)
         {
             var generatedPieces = GeneratePieceList(newPieces);
@@ -154,6 +161,7 @@ namespace Game.View
             {
                 (Piece pieceData, (int row, int col)) = (generationData.Item1, (generationData.Item2.x, generationData.Item2.y));
 
+                // TODO: If performance becomes an issue, consider using pools to replace instantiations
                 PieceView instance = Instantiate(GetPrefabForPiece(pieceData), _piecesRoot);
                 if (instance != null)
                 {
@@ -197,7 +205,6 @@ namespace Game.View
 
         public void AttemptSwap(PieceView selectedPiece, PieceView swapCandidatePiece)
         {
-            //Debug.Log($"Attempting swap between @ {selectedPiece.Coords} and {swapCandidatePiece.Coords} ");
             _swapping = true;
             _viewEvents.DispatchSwapAttemptStarted();
             StartCoroutine(TrySwapPieces(selectedPiece, swapCandidatePiece));
@@ -213,7 +220,7 @@ namespace Game.View
                 selectedPiece.transform.localPosition = Vector3.Lerp(selectedPos, candidatePos, easeValue);
                 swapCandidatePiece.transform.localPosition = Vector3.Lerp(candidatePos, selectedPos, easeValue);
             };
-            yield return Game.Utils.AnimationRoutineUtils.AnimateFloatWithEaseCurve(_swapDuration, _swapAnimationCurve, updatePieces);
+            yield return AnimationRoutineUtils.AnimateFloatWithEaseCurve(_swapDuration, _swapAnimationCurve, updatePieces);
             yield return _swapDelay;
 
             _viewEvents.DispatchSwapAnimationCompleted(selectedPiece.Coords, swapCandidatePiece.Coords);
@@ -246,15 +253,15 @@ namespace Game.View
             TryConvertCoordsToBoardPos(selected, out var selectedPos);
             TryConvertCoordsToBoardPos(candidate, out var candidatePos);
 
-            selectedPiece.PlayNay();
-            candidatePiece.PlayNay();
+            selectedPiece.PlayInvalidSwapAnimation();
+            candidatePiece.PlayInvalidSwapAnimation();
             yield return _swapRejectAnimationDelay;
             Action<float> updatePieces = (easeValue) =>
             {
                 selectedPiece.transform.localPosition = Vector3.Lerp(candidatePos, selectedPos, easeValue);
                 candidatePiece.transform.localPosition = Vector3.Lerp(selectedPos, candidatePos, easeValue);
             };
-            yield return Game.Utils.AnimationRoutineUtils.AnimateFloatWithEaseCurve(_swapDuration, _swapAnimationCurve, updatePieces);
+            yield return AnimationRoutineUtils.AnimateFloatWithEaseCurve(_swapDuration, _swapAnimationCurve, updatePieces);
             _viewEvents.DispatchFailedSwapAttempt();
             _swapping = false;
         }

@@ -3,6 +3,10 @@ using UnityEngine;
 
 namespace Game.Audio
 {
+    /// <summary>
+    /// This class handles sound and music playback, and tracks common events to trigger the 
+    /// appropriate sfx
+    /// </summary>
     public class BaseAudioController: MonoBehaviour
     {
         [Header("Shared properties")]

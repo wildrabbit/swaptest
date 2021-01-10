@@ -6,8 +6,16 @@ using UnityEngine;
 
 namespace Game.UI
 {
+    /// <summary>
+    /// Main in-game UI class. It will handle score and timer updates,
+    /// and also show additional widgets on demand, such as the game over popup
+    /// or the reshuffling widget.
+    /// </summary>
     public class HUD : MonoBehaviour
     {
+        const string kScoreFormatString = "000000";
+        const string kTimerFormatString = @"mm\:ss";
+
         [SerializeField] TMP_Text _score;
         [SerializeField] TMP_Text _highScore;
         [SerializeField] TMP_Text _timeLeft;
@@ -62,6 +70,7 @@ namespace Game.UI
             gameplayEvents.GameStarted -= OnGameStarted;
             gameplayEvents.GameFinished -= OnGameFinished;
             gameplayEvents.ScoreChanged -= OnScoreChanged;
+            gameplayEvents.HighScoreChanged -= OnHighScoreChanged;
             gameplayEvents.TimerChanged -= OnTimerChanged;
             gameplayEvents.TimerRunningOut -= OnRunningOut;
             var viewEvents = GameEvents.Instance.View;
@@ -103,7 +112,7 @@ namespace Game.UI
         IEnumerator ReshuffleFeedback()
         {
             _reshufflingFeedback.gameObject.SetActive(true);
-            // Polish: Add visual improvs (tween scale, alpha, etc)
+            // Polish: Add visual improvements (tween scale, alpha, etc)
             yield return _reshuffleDelay;
             _reshufflingFeedback.gameObject.SetActive(false);
             _reshuffleRoutine = null;
@@ -174,18 +183,18 @@ namespace Game.UI
 
         void UpdateScore(int score)
         {
-            _score.text = score.ToString("000000");
+            _score.text = score.ToString(kScoreFormatString);
         }
 
         void UpdateHighScore(int highScore)
         {
-            _highScore.text = highScore.ToString("000000");
+            _highScore.text = highScore.ToString(kScoreFormatString);
         }
 
         void UpdateTime(float secs)
         {
             TimeSpan t = TimeSpan.FromSeconds(secs);
-            _timeLeft.text = t.ToString(@"mm\:ss");
+            _timeLeft.text = t.ToString(kTimerFormatString);
         }
     }
 }

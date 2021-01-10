@@ -2,7 +2,7 @@
 using System.Collections;
 using UnityEngine;
 
-namespace Game.Utils
+namespace Utils
 {
     public static class AnimationRoutineUtils
     {

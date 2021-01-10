@@ -5,6 +5,9 @@ using UnityEngine;
 
 namespace Game
 {
+    /// <summary>
+    /// Persistent state. This basically tracks high scores right now.
+    /// </summary>
     [System.Serializable]
     public class GameState
     {

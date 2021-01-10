@@ -5,6 +5,10 @@ using UnityEngine;
 
 namespace Game.Audio
 {
+    /// <summary>
+    /// This class tracks gameplay events to play sound effects
+    /// using the logic defined by the base class.
+    /// </summary>
     public class GameplayAudioController : BaseAudioController
     {
         [Header("Gameplay-specific settings")]

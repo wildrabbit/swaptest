@@ -26,6 +26,9 @@ namespace Game.Board
         //....
     }
 
+    /// <summary>
+    /// Logic data to represent a piece
+    /// </summary>
     public class Piece
     {
         public PieceType PieceType { get; private set; }

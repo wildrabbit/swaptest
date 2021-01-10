@@ -8,6 +8,11 @@ using System.Collections.Generic;
 
 namespace Game
 {
+    /// <summary>
+    /// Entry point to the gameplay logic. 
+    /// This class will deal with level data load, time and score tracking,
+    /// and govern the flow.
+    /// </summary>
     public class GameController : MonoBehaviour
     {
         const string kGameStateFilename = "/gameState.sav";
@@ -79,7 +84,7 @@ namespace Game
 
             if(!_running)
             {
-                WaitForStableBoardAndFinish();
+                CheckIfStableBoardAndFinish();
                 return;                
             }
 
@@ -89,7 +94,7 @@ namespace Game
             {
                 _gameEvents.Gameplay.DispatchTimerExpired();
                 _running = false;
-                WaitForStableBoardAndFinish();
+                CheckIfStableBoardAndFinish();
             }
             else if (!_notifiedRunningOut && RemainingTime <= _runningOutWarningTime)
             {
@@ -98,7 +103,7 @@ namespace Game
             }
         }
 
-        bool WaitForStableBoardAndFinish()
+        bool CheckIfStableBoardAndFinish()
         {
             if (_boardController.IsStable)
             {
