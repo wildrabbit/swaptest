@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
-using Utils;
 
 namespace Game.Board
 {
@@ -10,6 +8,7 @@ namespace Game.Board
         Match3,
         Match4,
         Match5,
+        // TODO: Add other match types
         //Cross,
         //T,
         //Square,

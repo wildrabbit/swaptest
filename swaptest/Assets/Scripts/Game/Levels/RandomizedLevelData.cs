@@ -1,6 +1,5 @@
-﻿using UnityEngine;
-using System.Collections;
-using Game.Board;
+﻿using Game.Board;
+using UnityEngine;
 
 namespace Game.Levels
 {

@@ -18,7 +18,7 @@ namespace Game
         [SerializeField] int _match3BaseScore = 50;
         [SerializeField] int _match4BaseScore = 100;
         [SerializeField] int _match5BaseScore = 200;
-        [SerializeField, FormerlySerializedAs("_chains")] List<ChainPair> _matchChainMultipliers = new List<ChainPair>();
+        [SerializeField] List<ChainPair> _matchChainMultipliers = new List<ChainPair>();
 
         public int Match3Score => _match3BaseScore;
         public int Match4Score => _match4BaseScore;
@@ -36,7 +36,7 @@ namespace Game
 
             if (!_sortedMultipliers)
             {
-                // Ensure the list will always be sorted regardless of the inspector.
+                // Ensure the list will always be sorted regardless of the order values are set in the inspector.
                 _matchChainMultipliers.Sort((pair1, pair2) => pair1.ChainStep.CompareTo(pair2.ChainStep));
                 _sortedMultipliers = true;
             }

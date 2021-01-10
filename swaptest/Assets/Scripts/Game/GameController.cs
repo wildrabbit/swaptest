@@ -10,15 +10,19 @@ namespace Game
 {
     public class GameController : MonoBehaviour
     {
+        const string kGameStateFilename = "/gameState.sav";
+
         [SerializeField] BaseLevelData _levelData;
         [SerializeField] GameScoringRules _scoringRules;
         [SerializeField] Game.Board.BoardController _boardController;
         [SerializeField] InputController _inputController;
-        [SerializeField] float _runOutElapsedRemaining = 5f;
+        [SerializeField] float _runningOutWarningTime = 5f;
 
         bool _running;
         bool _finished;
         int _score;
+        bool _isNewHighScore;
+        int _highScore;
         float _elapsed;
         float _totalTime;
         string _lastSeed;
@@ -28,18 +32,42 @@ namespace Game
         public bool Running => _running;
         public bool Finished => _finished;
 
+        GameState _gameState;
 
-        void Start()
+        void Awake()
         {
             _gameEvents = GameEvents.Instance;
             _gameEvents.Board.MatchesFound += OnMatchesFound;
             _gameEvents.UI.StartGameRequested += OnStartNewGame;
+            _gameEvents.UI.ResetSaveRequested += OnRequestSaveReset;
+            _gameState = new GameState(Application.persistentDataPath + kGameStateFilename);
+        }
+
+        void Start()
+        {
+            _gameState.Load();
             StartGame();
         }
+
+        void OnDestroy()
+        {
+            _gameEvents.Board.MatchesFound -= OnMatchesFound;
+            _gameEvents.UI.StartGameRequested -= OnStartNewGame;
+            _gameEvents.UI.ResetSaveRequested -= OnRequestSaveReset;
+        }
+
 
         void OnStartNewGame(bool isRestart)
         {
             StartGame(useLastSeed: isRestart);
+        }
+
+        void OnRequestSaveReset()
+        {
+            _gameState.Delete();
+            _highScore = _levelData.HighScore;
+            _isNewHighScore = _score > _highScore;
+            _gameEvents.Gameplay.DispatchHighScoreChanged(_highScore);
         }
 
         void Update()
@@ -63,7 +91,7 @@ namespace Game
                 _running = false;
                 WaitForStableBoardAndFinish();
             }
-            else if (!_notifiedRunningOut && RemainingTime < _runOutElapsedRemaining)
+            else if (!_notifiedRunningOut && RemainingTime <= _runningOutWarningTime)
             {
                 _gameEvents.Gameplay.DispatchTimerRunningOut();
                 _notifiedRunningOut = true;
@@ -75,16 +103,15 @@ namespace Game
             if (_boardController.IsStable)
             {
                 _finished = true;
-                _gameEvents.Gameplay.DispatchGameFinished(_score);
+                if(_isNewHighScore)
+                {
+                    _gameState.AddHighScoreEntry(_levelData.name, _highScore);
+                }
+                _gameState.Save();
+                _gameEvents.Gameplay.DispatchGameFinished(_score, _isNewHighScore, _highScore);
                 return true;
             }
             return false;
-        }
-
-        void OnDestroy()
-        {
-            _gameEvents.Board.MatchesFound -= OnMatchesFound;
-            _gameEvents.UI.StartGameRequested -= OnStartNewGame;
         }
 
         void OnMatchesFound(List<MatchInfo> matches, int chainStep)
@@ -118,6 +145,12 @@ namespace Game
             }            
             _score += currentStepScore;
             _gameEvents.Gameplay.DispatchScoreChanged(currentStepScore, _score);
+            if(_score > _highScore)
+            {
+                _highScore = _score;
+                _isNewHighScore = true;
+                _gameEvents.Gameplay.DispatchHighScoreChanged(_highScore);
+            }
         }
 
         public void StartGame(bool useLastSeed = false)
@@ -149,8 +182,20 @@ namespace Game
             _finished = false;
             _score = 0;
             _notifiedRunningOut = false;
-            _gameEvents.Gameplay.DispatchGameStarted(_score, _elapsed, _totalTime);
-            _boardController.BeginBoardUpdatePhase();
+
+            var savedHighScore = _gameState.GetHighScoreForLevel(_levelData.name);
+            if (savedHighScore >= 0)
+            {
+                _highScore = savedHighScore;
+            }
+            else
+            {
+                _highScore = _levelData.HighScore;
+            }
+
+            _isNewHighScore = false;
+            _gameEvents.Gameplay.DispatchGameStarted(_score, _highScore, _elapsed, _totalTime);
+            _boardController.BeginBoardUpdatePhase();           
         }
     }
 

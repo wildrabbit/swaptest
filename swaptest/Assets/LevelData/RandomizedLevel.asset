@@ -15,5 +15,6 @@ MonoBehaviour:
   _playTime: 60
   _isSeeded: 0
   _randomSeed: 
+  _highScore: 8000
   _rows: 9
   _cols: 9

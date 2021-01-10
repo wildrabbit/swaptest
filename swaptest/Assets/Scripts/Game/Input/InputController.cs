@@ -82,12 +82,12 @@ namespace Game.Input
             viewEvents.FailedSwapAttempt -= OnFailedSwapAttempt;
         }
 
-        void OnGameStarted(int score, float elapsedTime, float totalTime)
+        void OnGameStarted(int score, int highScore, float elapsedTime, float totalTime)
         {
             SetInputEnabled(true);
         }
 
-        void OnGameFinished(int obj)
+        void OnGameFinished(int score, bool newHighScore, int highScore)
         {
             CancelSelection();
             SetInputEnabled(false);

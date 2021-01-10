@@ -1,7 +1,5 @@
-﻿using UnityEngine;
-using System.Collections;
-using Game.Events;
-using System;
+﻿using Game.Events;
+using UnityEngine;
 
 namespace Game.Audio
 {

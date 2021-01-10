@@ -9,10 +9,12 @@ namespace Game.Levels
         [SerializeField] float _playTime;
         [SerializeField] bool _isSeeded;
         [SerializeField] string _randomSeed;
+        [SerializeField] int _highScore;
 
         public float PlayTime => _playTime;
         public bool IsSeeded => _isSeeded;
         public string RandomSeed => _randomSeed;
+        public int HighScore => _highScore;
 
         public abstract Piece[,] Generate();
     }

@@ -1,18 +1,16 @@
-﻿using UnityEngine;
+﻿using Game.Events;
 using System.Collections;
-using UnityEngine.UI;
 using System;
-using Game.Events;
+using TMPro;
+using UnityEngine;
 
 namespace Game.UI
 {
     public class HUD : MonoBehaviour
     {
-        [SerializeField] Text _score;
-        [SerializeField] Text _timeLeft;
-
-        [SerializeField] Button _toggleSfx;
-        [SerializeField] Button _toggleMusic;
+        [SerializeField] TMP_Text _score;
+        [SerializeField] TMP_Text _highScore;
+        [SerializeField] TMP_Text _timeLeft;
 
         [SerializeField] RectTransform _reshufflingFeedback;
         [SerializeField] float _reshuffleVisibleDuration = 1.0f;
@@ -20,7 +18,7 @@ namespace Game.UI
         [SerializeField] GameOverScreen _gameOverScreenPrefab;
 
         [SerializeField] Color _timeRunningOutColour;
-        [SerializeField] FontStyle _timeRunningOutStyle;
+        [SerializeField] FontStyles _timeRunningOutStyle;
 
         [SerializeField] float _shakeSpeed = 1.0f;
         [SerializeField] float _shakeIntensity = 0.15f;
@@ -30,21 +28,29 @@ namespace Game.UI
         Coroutine _reshuffleRoutine;
 
         Color _defaultColour;
-        FontStyle _defaultStyle;
+        FontStyles _defaultStyle;
+
+        UIEvents _uiEvents;
+
+        bool _firstHighScoreInPlaythrough = true;
 
         void Awake()
         {
-            var gameplayEvents = GameEvents.Instance.Gameplay;
+            var gameEvents = GameEvents.Instance;
+            var gameplayEvents = gameEvents.Gameplay;
             gameplayEvents.GameStarted += OnGameStarted;
             gameplayEvents.GameFinished += OnGameFinished;
             gameplayEvents.ScoreChanged += OnScoreChanged;
+            gameplayEvents.HighScoreChanged += OnHighScoreChanged;
             gameplayEvents.TimerChanged += OnTimerChanged;
             gameplayEvents.TimerRunningOut += OnRunningOut;
-            var viewEvents = GameEvents.Instance.View;
+            var viewEvents = gameEvents.View;
             viewEvents.Reshuffling += OnReshuffling;
 
             _reshuffleDelay = new WaitForSeconds(_reshuffleVisibleDuration);
             _reshufflingFeedback.gameObject.SetActive(false);
+
+            _uiEvents = gameEvents.UI;
 
             _defaultColour = _timeLeft.color;
             _defaultStyle = _timeLeft.fontStyle;
@@ -60,6 +66,22 @@ namespace Game.UI
             gameplayEvents.TimerRunningOut -= OnRunningOut;
             var viewEvents = GameEvents.Instance.View;
             viewEvents.Reshuffling -= OnReshuffling;
+        }
+
+
+        public void OnResetSave()
+        {
+            _uiEvents.DispatchResetSaveRequest();
+        }
+
+        public void OnSFXToggle()
+        {
+            _uiEvents.DispatchSFXToggle();
+        }
+
+        public void OnMusicToggle()
+        {
+            _uiEvents.DispatchMusicToggle();
         }
 
         void OnReshuffling()
@@ -97,36 +119,49 @@ namespace Game.UI
             UpdateScore(total);
         }
 
+        void OnHighScoreChanged(int highScore)
+        {
+            if (_firstHighScoreInPlaythrough)
+            {
+                StartCoroutine(Shake(_highScore.rectTransform));
+                _firstHighScoreInPlaythrough = false;
+            }
+            UpdateHighScore(highScore);
+        }
+
         void OnRunningOut()
         {
             SetTimeLabelFormat(runningOutTimer: true);
-            StartCoroutine(Shake());
+            StartCoroutine(Shake(_timeLeft.rectTransform));
         }
 
-        IEnumerator Shake()
+        IEnumerator Shake(RectTransform shakingTransform)
         {
             float elapsed = 0.0f;
-            var shakePosition = _timeLeft.transform.localPosition;
+            var shakePosition = shakingTransform.localPosition;
             while (elapsed <= _shakeDuration)
             {
-                _timeLeft.transform.localPosition = shakePosition + new Vector3(Mathf.Sin(Time.time * _shakeSpeed) * _shakeIntensity, 0, 0);
+                shakingTransform.localPosition = shakePosition + new Vector3(Mathf.Sin(Time.time * _shakeSpeed) * _shakeIntensity, 0, 0);
                 yield return null;
                 elapsed += Time.deltaTime;
             }
+            shakingTransform.localPosition = shakePosition;
         }
 
-        void OnGameFinished(int finalScore)
+        void OnGameFinished(int finalScore, bool isNewHighScore, int highScore)
         {
             StopExistingReshuffleRoutine();
             UpdateScore(finalScore);
 
             var gameOverPopup = Instantiate(_gameOverScreenPrefab);
-            gameOverPopup.Show(finalScore);
+            gameOverPopup.Show(finalScore, isNewHighScore);
         }
 
-        void OnGameStarted(int score, float elapsed, float totalTime)
+        void OnGameStarted(int score, int highScore, float elapsed, float totalTime)
         {
             UpdateScore(score);
+            UpdateHighScore(highScore);
+            _firstHighScoreInPlaythrough = true;
             SetTimeLabelFormat(runningOutTimer:false);
             UpdateTime(totalTime - elapsed);
         }
@@ -142,12 +177,15 @@ namespace Game.UI
             _score.text = score.ToString("000000");
         }
 
+        void UpdateHighScore(int highScore)
+        {
+            _highScore.text = highScore.ToString("000000");
+        }
+
         void UpdateTime(float secs)
         {
             TimeSpan t = TimeSpan.FromSeconds(secs);
             _timeLeft.text = t.ToString(@"mm\:ss");
         }
-
-        
     }
 }

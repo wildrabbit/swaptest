@@ -1,28 +1,32 @@
-﻿using UnityEngine;
+﻿using Game.Board;
+using Game.View;
 using System;
 using System.Collections.Generic;
-using Game.Board;
-using Game.View;
+using UnityEngine;
 
 namespace Game.Events
 {
     public class GameplayEvents
     {
-        public event Action<int, float, float> GameStarted;
-        public event Action<int> GameFinished;
+        public event Action<int, int, float, float> GameStarted;
+        public event Action<int, bool, int> GameFinished;
         public event Action<int, int> ScoreChanged;
+        public event Action<int> HighScoreChanged;
         public event Action<float, float> TimerChanged;
         public event Action TimerExpired;
         public event Action TimerRunningOut;
         public event Action<MatchInfo, int, int> MatchProcessed;
+        public event Action SavedGame;
+        public event Action LoadGame;
+        public event Action ResetGameSave;
 
-        public void DispatchGameStarted(int score, float elapsed, float totalTime)
+        public void DispatchGameStarted(int score, int highScore, float elapsed, float totalTime)
         {
-            GameStarted?.Invoke(score, elapsed, totalTime);
+            GameStarted?.Invoke(score, highScore, elapsed, totalTime);
         }
-        public void DispatchGameFinished(int finalScore)
+        public void DispatchGameFinished(int finalScore, bool isNewHighScore, int highScore)
         {
-            GameFinished?.Invoke(finalScore);
+            GameFinished?.Invoke(finalScore, isNewHighScore, highScore);
         }
         public void DispatchScoreChanged(int scoreDelta, int totalScore)
         {
@@ -45,21 +49,59 @@ namespace Game.Events
         {
             MatchProcessed?.Invoke(match, score, chainStep);
         }
+
+        public void DispatchHighScoreChanged(int newHighScore)
+        {
+            HighScoreChanged?.Invoke(newHighScore);
+        }
+
+        public void DispatchSaved()
+        {
+            SavedGame?.Invoke();
+        }
+
+        public void DispatchLoad()
+        {
+            LoadGame?.Invoke();
+        }
+
+        public void DispatchResetGameSave()
+        {
+            ResetGameSave?.Invoke();
+        }
     }
 
     public class UIEvents
     {
         public event Action<bool> StartGameRequested;
+        public event Action ResetSaveRequested;
         public event Action ButtonTapped;
+        public event Action SFXToggle;
+        public event Action MusicToggle;
 
         public void DispatchStartGameRequested(bool isRestart)
         {
             StartGameRequested?.Invoke(isRestart);
         }
+
+        public void DispatchResetSaveRequest()
+        {
+            ResetSaveRequested?.Invoke();
+        }
         
         public void DispatchButtonTapped()
         {
             ButtonTapped?.Invoke();
+        }
+
+        public void DispatchSFXToggle()
+        {
+            SFXToggle?.Invoke();
+        }
+
+        public void DispatchMusicToggle()
+        {
+            MusicToggle?.Invoke();
         }
     }
 

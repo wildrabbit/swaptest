@@ -1,9 +1,10 @@
-﻿using System;
+﻿using Game.Board;
+using Game.Events;
+using System;
 using System.Collections;
 using System.Collections.Generic;
-using Game.Board;
 using UnityEngine;
-using Game.Events;
+
 
 namespace Game.View
 {
@@ -17,6 +18,7 @@ namespace Game.View
 
         [SerializeField] float _swapDuration = 0.3f;
         [SerializeField] float _swapDelayDuration = 0.1f;
+        [SerializeField] float _swapRejectAnimationDuration = 0.5f;
         [SerializeField] float _explodeDelayDuration = 0.3f;
         [SerializeField] float _dropDelayDuration = 0.2f;
         [SerializeField] float _reshuffleDelayDuration = 0.4f;
@@ -32,6 +34,7 @@ namespace Game.View
         float _boardOffsetX;
         float _boardOffsetY;
         WaitForSeconds _swapDelay;
+        WaitForSeconds _swapRejectAnimationDelay;
         WaitForSeconds _explodeDelay;
         WaitForSeconds _dropDelay;
         WaitForSeconds _reshuffleDelay;
@@ -45,6 +48,7 @@ namespace Game.View
             _explodeDelay = new WaitForSeconds(_explodeDelayDuration);
             _dropDelay = new WaitForSeconds(_dropDelayDuration);
             _reshuffleDelay = new WaitForSeconds(_reshuffleDelayDuration);
+            _swapRejectAnimationDelay = new WaitForSeconds(_swapRejectAnimationDuration);
 
             _viewEvents = GameEvents.Instance.View;
         }
@@ -55,8 +59,11 @@ namespace Game.View
             _cols = pieces.GetLength(1);
             Cleanup();
 
-            _boardOffsetY = _cellHeight * (_rows / 2) - (1 - (_rows % 2)) * _cellHeight * 0.5f;
-            _boardOffsetX = _cellWidth * (_cols / 2) - (1 - (_cols % 2)) * _cellWidth* 0.5f;
+            float halfCellHeightOffset = (1 - (_rows % 2)) * _cellHeight * 0.5f;
+            float halfCellWidthOffset = (1 - (_cols % 2)) * _cellWidth * 0.5f;
+
+            _boardOffsetY = _cellHeight * (_rows / 2) - halfCellHeightOffset;
+            _boardOffsetX = _cellWidth * (_cols / 2) - halfCellWidthOffset;
 
             for (int i = 0; i < _rows; ++i)
             {
@@ -92,11 +99,11 @@ namespace Game.View
             var pieces = GetPieces(matchingCoordinates);
             foreach(var piece in pieces)
             {
-                StartCoroutine(piece.Explode());
+                StartCoroutine(piece.Explode(_explodeDelayDuration));
             }
-            _viewEvents.DispatchPiecesExploded(pieces, chainStep);
             yield return _explodeDelay;
-            foreach (var piece in pieces)
+            _viewEvents.DispatchPiecesExploded(pieces, chainStep);
+           foreach (var piece in pieces)
             {
                 Destroy(piece.gameObject);
                 _pieceInstances.Remove(piece);
@@ -201,16 +208,12 @@ namespace Game.View
             TryConvertCoordsToBoardPos(selectedPiece.Coords, out var selectedPos);
             TryConvertCoordsToBoardPos(swapCandidatePiece.Coords, out var candidatePos);
 
-            float duration = 0;
-            float t = 0;
-            while (duration < _swapDuration)
+            Action<float> updatePieces = (easeValue) =>
             {
-                t = _swapAnimationCurve.Evaluate(duration / _swapDuration);
-                selectedPiece.transform.localPosition = Vector3.Lerp(selectedPos, candidatePos, t);
-                swapCandidatePiece.transform.localPosition = Vector3.Lerp(candidatePos, selectedPos, t);
-                yield return null;
-                duration += Time.deltaTime;
-            }
+                selectedPiece.transform.localPosition = Vector3.Lerp(selectedPos, candidatePos, easeValue);
+                swapCandidatePiece.transform.localPosition = Vector3.Lerp(candidatePos, selectedPos, easeValue);
+            };
+            yield return Game.Utils.AnimationRoutineUtils.AnimateFloatWithEaseCurve(_swapDuration, _swapAnimationCurve, updatePieces);
             yield return _swapDelay;
 
             _viewEvents.DispatchSwapAnimationCompleted(selectedPiece.Coords, swapCandidatePiece.Coords);
@@ -245,17 +248,13 @@ namespace Game.View
 
             selectedPiece.PlayNay();
             candidatePiece.PlayNay();
-            yield return new WaitForSeconds(0.5f);
-            float duration = 0;
-            float t = 0;
-            while (duration < _swapDuration)
+            yield return _swapRejectAnimationDelay;
+            Action<float> updatePieces = (easeValue) =>
             {
-                t = _swapAnimationCurve.Evaluate(duration / _swapDuration);
-                selectedPiece.transform.localPosition = Vector3.Lerp(candidatePos, selectedPos, t);
-                candidatePiece.transform.localPosition = Vector3.Lerp(selectedPos, candidatePos, t);
-                yield return null;
-                duration += Time.deltaTime;
-            }
+                selectedPiece.transform.localPosition = Vector3.Lerp(candidatePos, selectedPos, easeValue);
+                candidatePiece.transform.localPosition = Vector3.Lerp(selectedPos, candidatePos, easeValue);
+            };
+            yield return Game.Utils.AnimationRoutineUtils.AnimateFloatWithEaseCurve(_swapDuration, _swapAnimationCurve, updatePieces);
             _viewEvents.DispatchFailedSwapAttempt();
             _swapping = false;
         }

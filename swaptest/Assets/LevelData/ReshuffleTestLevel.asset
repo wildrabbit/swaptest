@@ -15,6 +15,7 @@ MonoBehaviour:
   _playTime: 15
   _isSeeded: 1
   _randomSeed: '{"s0":123745219,"s1":1446748564,"s2":761610485,"s3":-981601145}'
+  _highScore: 1000
   _firstRowAtTop: 1
   _levelLayout: '5,5
 

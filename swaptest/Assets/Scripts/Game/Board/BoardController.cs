@@ -1,11 +1,10 @@
-﻿using Game.Levels;
-using System;
+﻿using Game.Events;
+using Game.Levels;
+using Game.View;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Game.View;
 using URandom = UnityEngine.Random;
-using Game.Events;
 
 namespace Game.Board
 {

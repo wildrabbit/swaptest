@@ -1,7 +1,5 @@
 ﻿using Game.Events;
 using Game.View;
-using System;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -80,12 +78,12 @@ namespace Game.Audio
             _audioSource.PlayOneShot(_timerRunning);
         }
 
-        void OnGameFinished(int obj)
+        void OnGameFinished(int score, bool isNewHighScore, int highScore)
         {
             _audioSource.PlayOneShot(_gameFinished);
         }
 
-        void OnGameStarted(int arg1, float arg2, float arg3)
+        void OnGameStarted(int score, int highScore, float elapsed, float total)
         {
             _audioSource.PlayOneShot(_gameStarted);
         }

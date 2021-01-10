@@ -2,14 +2,13 @@
 using Game.Events;
 using Game.Board;
 using System.Collections.Generic;
-using UnityEngine.Serialization;
 
 namespace Game.View
 {
     public class ScoreFeedbackController : MonoBehaviour
     {
         [SerializeField] ScoreFeedback _scoreTextPrefab;
-        [SerializeField, FormerlySerializedAs("_view")] BoardView _boardView;
+        [SerializeField] BoardView _boardView;
 
         // TODO: Pool instances
         List<ScoreFeedback> _currentInstances;
@@ -27,7 +26,7 @@ namespace Game.View
             GameEvents.Instance.Gameplay.GameFinished -= OnGameFinished;
         }
 
-        private void OnGameFinished(int obj)
+        private void OnGameFinished(int score, bool isNewHighScore, int highScore)
         {
             foreach(var instance in _currentInstances)
             {

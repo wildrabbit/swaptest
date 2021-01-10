@@ -1,7 +1,8 @@
-﻿using UnityEngine;
-using Game.Board;
+﻿using Game.Board;
+using Game.Utils;
 using System;
 using System.Collections;
+using UnityEngine;
 
 namespace Game.View
 {
@@ -17,6 +18,8 @@ namespace Game.View
         public PieceColour Colour => _colour;
         public Vector2Int Coords => _coords;
 
+        AnimationCurve _linearEaseCurve;
+
         Vector2Int _coords;
 
         int _idleHash;
@@ -29,6 +32,7 @@ namespace Game.View
         {
             HashAnimationParameters();            
             _selectionOverlay.SetActive(false);
+            _linearEaseCurve = AnimationCurve.Linear(0.0f, 0.0f, 1.0f, 1.0f);
         }
 
         void HashAnimationParameters()
@@ -73,9 +77,10 @@ namespace Game.View
             PlayIdle();
         }
 
-        public IEnumerator Explode()
+        public IEnumerator Explode(float animationHoldDuration)
         {
-            // Play explode animation
+            PlayHappy();
+            yield return new WaitForSeconds(animationHoldDuration);
             gameObject.SetActive(false);
             var vfx = Instantiate(_pieceExplosionPrefab, transform.parent);
             vfx.transform.localPosition = transform.localPosition;
@@ -84,13 +89,8 @@ namespace Game.View
 
         public IEnumerator Disappear(float duration)
         {
-            float time = 0.0f;
-            while (time < duration)
-            {
-                transform.localScale = Vector3.Lerp(Vector3.one, Vector3.zero, time / duration);
-                yield return null;
-                time += Time.deltaTime;
-            }
+            Action<Vector3> scaleFunc = (lerpVector) => transform.localScale = lerpVector;
+            yield return AnimationRoutineUtils.LerpVectorWithEaseCurve(Vector3.one, Vector3.zero, duration, _linearEaseCurve, scaleFunc);
             gameObject.SetActive(false);
         }
 
@@ -99,24 +99,13 @@ namespace Game.View
             gameObject.SetActive(true);
             PlaySpawn();
             yield return new WaitForSeconds(duration);
-            //while (time < duration)
-            //{
-            //    transform.localScale = Vector3.Lerp(Vector3.zero, Vector3.one, time / duration);
-            //    yield return null;
-            //    time += Time.deltaTime;
-            //}
         }
 
         public IEnumerator Drop(Vector2Int dropCoords, Vector3 newPos, float duration)
         {
-            float time = 0;
             Vector3 startPos = transform.localPosition;
-            while (time < duration)
-            {
-                transform.localPosition = Vector3.Lerp(startPos, newPos, time / duration);
-                yield return null;
-                time += Time.deltaTime;
-            }
+            Action<Vector3> positionFunc = (lerpVector) => transform.localPosition = lerpVector;
+            yield return AnimationRoutineUtils.LerpVectorWithEaseCurve(startPos, newPos, duration, _linearEaseCurve, positionFunc);
             _coords = dropCoords;
         }
 

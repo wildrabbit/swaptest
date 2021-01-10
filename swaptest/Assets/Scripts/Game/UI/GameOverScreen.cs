@@ -1,15 +1,14 @@
-﻿using UnityEngine;
-using System.Collections;
-using System;
-using UnityEngine.UI;
-using Game.Events;
+﻿using Game.Events;
+using TMPro;
+using UnityEngine;
 
 namespace Game.UI
 {
     public class GameOverScreen : MonoBehaviour
     {
-        const string kGameOverTextPattern = "You scored {0} points.";
-        [SerializeField] Text _scoreMessage;
+        const string kGameOverTextPattern = "You scored {0} points. \nPlay again to beat the high score!";
+        const string kGameOverHighScorePattern = "You beat the high score with {0} points! :D";
+        [SerializeField] TMP_Text _scoreMessage;
         [SerializeField] string _menuScene;
 
         UIEvents _uiEvents;
@@ -33,10 +32,10 @@ namespace Game.UI
             Close();
         }
 
-        public void Show(int finalScore)
+        public void Show(int finalScore, bool isHighScore)
         {
             gameObject.SetActive(true);
-            _scoreMessage.text = string.Format(kGameOverTextPattern, finalScore);
+            _scoreMessage.text = string.Format(isHighScore ? kGameOverHighScorePattern : kGameOverTextPattern, finalScore);
         }
 
         public void Close()
