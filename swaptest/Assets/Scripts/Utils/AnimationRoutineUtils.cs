@@ -17,6 +17,7 @@ namespace Utils
                 yield return null;
                 elapsed += Time.deltaTime;
             }
+            update?.Invoke(easeCurve.Evaluate(1.0f));
         }
 
         public static IEnumerator LerpVectorWithEaseCurve(Vector3 startVec, Vector3 endVec, float duration, AnimationCurve easeCurve, Action<Vector3> updateFunction)
@@ -30,6 +31,7 @@ namespace Utils
                 yield return null;
                 elapsed += Time.deltaTime;
             }
+            updateFunction?.Invoke(Vector3.Lerp(startVec, endVec, easeCurve.Evaluate(1.0f)));
         }
     }
 }

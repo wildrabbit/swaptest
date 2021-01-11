@@ -26,7 +26,6 @@ namespace Game.Audio
             GameEvents.Instance.UI.ButtonTapped += OnButtonTapped;
         }
 
-        // Update is called once per frame
         protected virtual void OnDestroy()
         {
             GameEvents.Instance.UI.ButtonTapped -= OnButtonTapped;
